@@ -93,8 +93,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  Card1: {fileID: 5937224298882212189, guid: a9bc851ff26a7bc409a9e622ac38e201, type: 3}
-  Card2: {fileID: 7167195152684774269, guid: af20fd080cbba84449abcf18ddaa8c57, type: 3}
+  regCardPrefab: {fileID: 5937224298882212189, guid: a9bc851ff26a7bc409a9e622ac38e201, type: 3}
+  skipCardPrefab: {fileID: 5898255486847122131, guid: eac7e256de750704188c9127e15a6367, type: 3}
+  drawCardPrefab: {fileID: 2300376196675467643, guid: e3670da6a9471a146ae96c3e4819e5b1, type: 3}
+  wildCardPrefab: {fileID: 6251967198445456680, guid: 9427dc2cf46b9304eb11055c39f6ce74, type: 3}
+  reverseCardPrefab: {fileID: 3645024622459372372, guid: 169facfb726654645abd30b267b809f2, type: 3}
   PlayerArea: {fileID: 0}
-  EnemyArea: {fileID: 0}
+  Player2Area: {fileID: 0}
+  Player3Area: {fileID: 0}
+  Player4Area: {fileID: 0}
   DropZone: {fileID: 0}
+  cards: []
