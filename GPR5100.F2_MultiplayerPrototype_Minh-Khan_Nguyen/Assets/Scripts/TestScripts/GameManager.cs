@@ -1,372 +1,232 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using Mirror;
 using System.Linq;
 
-public class GameManager : MonoBehaviour
+public class GameManager : NetworkBehaviour
 {
-	List<IPlayerInterface> players = new List<IPlayerInterface>();
-	public static List<CardDisplay> deck = new List<CardDisplay>();
-	public static List<CardDisplay> discard = new List<CardDisplay>();
-	public GameObject playerHand;
-	public GameObject contentHolder;
-	public Text dialogueText;
+    public UIManager UIManager;
+    public int TurnOrder = 0;
+    public string GameState = "Initialize {}";
 
-	public static GameObject discardPileObj;
+    public List<IPlayerInterface> players = new List<IPlayerInterface>();
 
-	public GameObject regCardPrefab;
-	public GameObject skipCardPrefab;
-	public GameObject revrsCardPrefab;
-	public GameObject drawCardPrefab;
-	public GameObject wildCardPrefab;
+    public GameObject PlayerArea;
+    public GameObject Player2Area;
+    public GameObject Player3Area;
+    public GameObject Player4Area;
+    public GameObject DropZone;
 
-	public GameObject[] colors = new GameObject[4];
-	string[] colorsMatch = new string[4] { "Yellow", "Green", "Blue", "Red" };
-	public GameObject[] aiPlayers = new GameObject[5];
-	public GameObject colorText;
-	public GameObject deckGO;
-	public GameObject pauseCan;
-	public GameObject endCan;
-	bool enabledStat = false;
+    public GameObject regCardPrefab;
+    public GameObject skipCardPrefab;
+    public GameObject drawCardPrefab;
+    public GameObject wildCardPrefab;
+    public GameObject reverseCardPrefab;
 
-	int where = 0;
-	float timer = 0;
-	bool reverse = false;
+    public static List<CardDisplay> deck = new List<CardDisplay>();
+    public static List<CardDisplay> discard = new List<CardDisplay>();
 
-	public static int numbOfAI;
+    private GameObject discardPileObj;
 
-	void Start()
-	{ //this does all the setup. Makes the human and ai players. sets the deck and gets the game ready
-		discard.Clear();
-		deck.Clear();
+    public GameObject startButton;
 
-		players.Add(new HumanPlayer("You"));
-		for (int i = 0; i < numbOfAI; i++)
-		{
-			players.Add(new AiPlayer("AI " + (i + 1)));
-		}
+    private int ReadyClicks = 0;
+    public bool isGameStarting;
 
-		for (int i = 0; i < players.Count - 1; i++)
-		{
-			aiPlayers[i].SetActive(true);
-			aiPlayers[i].transform.Find("Name").GetComponent<Text>().text = players[i + 1].getName();
-		}
+    void Start()
+    {
+       // UIManager = GameObject.Find("UIManager").GetComponent<UIManager>();
+      //  UIManager.UpdateButtonText(GameState);
 
-		for (int i = 0; i < 15; i++)
-		{ //setups the deck by making cards
-			for (int j = 0; j < 8; j++)
-			{
-				switch (i)
-				{
-					case 10:
-						deck.Add(new CardDisplay(i, returnColorName(j % 4), skipCardPrefab));
-						break;
-					case 11:
-						deck.Add(new CardDisplay(i, returnColorName(j % 4), revrsCardPrefab));
-						break;
-					case 12:
-						deck.Add(new CardDisplay(i, returnColorName(j % 4), drawCardPrefab));
-						break;			 
-					case 13:			 
-						deck.Add(new CardDisplay(i, "Black", wildCardPrefab));
-						break;			 
-					case 14:			 
-						deck.Add(new CardDisplay(i, "Black", wildCardPrefab));
-						break;			 
-					default:			 
-						deck.Add(new CardDisplay(i, returnColorName(j % 4), regCardPrefab));
-						break;
-				}
+        discard.Clear();
+        deck.Clear();
 
-				if ((i == 0 || i >= 13) && j >= 3)
-					break;
-			}
-		}
-		shuffle();
+        PlayerArea = GameObject.Find("PlayerArea");
+        Player2Area = GameObject.Find("Player2Area");
+        Player3Area = GameObject.Find("Player3Area");
+        Player4Area = GameObject.Find("Player4Area");
+        DropZone = GameObject.Find("DropZone");
+        
 
-		CardDisplay first = null;
-		if (deck[0].getNumb() < 10)
-		{
-			first = deck[0];
-		}
-		else
-		{
-			while (deck[0].getNumb() >= 10)
-			{
-				deck.Add(deck[0]);
-				deck.RemoveAt(0);
-			}
-			first = deck[0];
-		}
-		discard.Add(first);
-		discardPileObj = first.loadCard(GameObject.Find("Main Canvas").transform);
-		deck.RemoveAt(0);
+    }
 
-		foreach (IPlayerInterface x in players)
-		{
-			for (int i = 0; i < 7; i++)
-			{
-				x.addCards(deck[0]);
-				deck.RemoveAt(0);
-			}
-		}
-	}
-	string returnColorName(int numb)
-	{ //returns a color based on a number, used in setup
-		switch (numb)
-		{
-			case 0:
-				return "Green";
-			case 1:
-				return "Blue";
-			case 2:
-				return "Red";
-			case 3:
-				return "Yellow";
-		}
-		return "";
-	}
+    [Server]
+    public override void OnStartServer()
+    {
+        base.OnStartServer();
+        GenerateDeck();
+        startButton.SetActive(false);
 
-	void shuffle()
-	{ //shuffles the deck by changing cards around
-		for (int i = 0; i < deck.Count; i++)
-		{
-			CardDisplay temp = deck.ElementAt(i);
-			int posSwitch = Random.Range(0, deck.Count);
-			deck[i] = deck[posSwitch];
-			deck[posSwitch] = temp;
-		}
-	}
-	public void recieveText(string text)
-	{ //updates the dialogue box
-		dialogueText.text += text + "\n";
-		contentHolder.GetComponent<RectTransform>().localPosition = new Vector2(0, contentHolder.GetComponent<RectTransform>().sizeDelta.y);
-	}
-	public void updateDiscPile(CardDisplay card)
-	{ //this changes the last card played. Top of the discard pile
-		discard.Add(card);
-		Destroy(discardPileObj);
-		discardPileObj = card.loadCard(725, -325, GameObject.Find("Main Canvas").transform);
-		discardPileObj.transform.SetSiblingIndex(9);
-	}
-	public bool updateCardsLeft()
-	{ //this updates the number below each ai, so the player knows how many cards they have left
-		for (int i = 0; i < players.Count - 1; i++)
-		{
-			int temp = players[i + 1].getCardsLeft();
-			aiPlayers[i].transform.Find("CardsLeft").GetComponent<Text>().text = temp.ToString();
-		}
-		foreach (IPlayerInterface i in players)
-		{
-			if (i.getCardsLeft() == 0)
-			{
-				this.enabled = false;
-				recieveText(string.Format("{0} won!", i.getName()));
-				endCan.SetActive(true);
-				endCan.transform.Find("WinnerTxt").gameObject.GetComponent<Text>().text = string.Format("{0} Won!", i.getName());
-				return true;
-			}
-		}
-		return false;
-	}
+    }
 
-	void Update()
-	{ //this runs the players turns
-		bool win = updateCardsLeft();
-		if (win)
-			return;
-		if (players[where] is HumanPlayer)
-		{
-			if (players[where].skipStatus)
-			{
-				players[where].skipStatus = false;
-				where += reverse ? -1 : 1;
-				if (where >= players.Count)
-					where = 0;
-				else if (where < 0)
-					where = players.Count - 1;
-				return;
-			}
-			this.enabled = false;
-			IPlayerInterface temp = players[where];
-			deckGO.GetComponent<Button>().onClick.RemoveAllListeners();
-			deckGO.GetComponent<Button>().onClick.AddListener(() => {
-				draw(1, temp);
-				((HumanPlayer)temp).RecieveDrawOnTurn();
-			});
-			where += reverse ? -1 : 1;
-			players[where + (reverse ? 1 : -1)].turn();
-		}
-		else if (players[where] != null)
-		{
-			if (players[where].skipStatus)
-			{
-				players[where].skipStatus = false;
-				where += reverse ? -1 : 1;
-				if (where >= players.Count)
-					where = 0;
-				else if (where < 0)
-					where = players.Count - 1;
-				return;
-			}
-			timer += Time.deltaTime;
-			if (timer < 2.2)
-				return;
-			this.enabled = false;
-			timer = 0;
-			where += reverse ? -1 : 1;
-			players[where + (reverse ? 1 : -1)].turn();
-		}
-		else
-			where += reverse ? -1 : 1;
+    private void Update()
+    {
+        if ( ReadyClicks == 1)
+        {
+            startButton.SetActive(true);
+        }
+    }
 
-		if (where >= players.Count)
-			where = 0;
-		else if (where < 0)
-			where = players.Count - 1;
+    void GenerateDeck()
+    {
+        Debug.Log("Generating Deck");
+        // Generate deck
+        for (int i = 0; i < 15; i++)
+        { //setups the deck by making cards
+            for (int j = 0; j < 8; j++)
+            {
+                switch (i)
+                {
+                    case 10:
+                        deck.Add(new CardDisplay(i, ReturnColorName(j % 4), skipCardPrefab));
+                        break;
+                    case 11:
+                        deck.Add(new CardDisplay(i, ReturnColorName(j % 4), reverseCardPrefab));
+                        break;
+                    case 12:
+                        deck.Add(new CardDisplay(i, ReturnColorName(j % 4), drawCardPrefab));
+                        break;
+                    case 13:
+                        deck.Add(new CardDisplay(i, "Black", wildCardPrefab));
+                        break;
+                    case 14:
+                        deck.Add(new CardDisplay(i, "Black", wildCardPrefab));
+                        break;
+                    default:
+                        deck.Add(new CardDisplay(i, ReturnColorName(j % 4), regCardPrefab));
+                        break;
+                }
 
-	}
-	public void startWild(string name)
-	{ //this starts the color chooser for the player to choose a color after playing a  wild
-		for (int i = 0; i < 4; i++)
-		{
-			colors[i].SetActive(true);
-			addWildListeners(i, name);
-		}
-		colorText.SetActive(true);
-	}
-	public void addWildListeners(int i, string name)
-	{ //this is ran from the start wild. It sets each color option as a button and sets the onclick events
-		colors[i].GetComponent<Button>().onClick.AddListener(() => {
-			discard[discard.Count - 1].changeColor(colorsMatch[i]);
-			recieveText(string.Format("{0} played a wild, Color: {1}", name, colorsMatch[i]));
+                if ((i == 0 || i >= 13) && j >= 3)
+                    break;
+            }
+        }
+        Shuffle();
+        Debug.Log(deck.Count);
+    }
 
-			Destroy(discardPileObj);
-			discardPileObj = discard[discard.Count - 1].loadCard(725, -325, GameObject.Find("Main Canvas").transform);
-			discardPileObj.transform.SetSiblingIndex(9);
+    public void ChangeGameState(string stateRequest)
+    {
+        if (stateRequest == "Initialize {}")
+        {
+            ReadyClicks = 0;
+            GameState = "Initialize {}";
+        }
+        else if (stateRequest == "Compile {}")
+        {
+            if (ReadyClicks == 1)
+            {
+                GameState = "Compile {}";
+                UIManager.HighlightTurn(TurnOrder);
+            }
+        }
+        else if (stateRequest == "Execute {}")
+        {
+            GameState = "Execute {}";
+            TurnOrder = 0;
+        }
+        UIManager.UpdateButtonText(GameState);
+    }
 
-			foreach (GameObject x in colors)
-			{
-				x.SetActive(false);
-				x.GetComponent<Button>().onClick.RemoveAllListeners();
-			}
-			colorText.SetActive(false);
-			this.enabled = true;
-		});
-	}
-	public void draw(int amount, IPlayerInterface who)
-	{ //gives cards to the players. Players can ask to draw or draw will actrivate from special cards
-		if (deck.Count < amount)
-		{
-			resetDeck();
-		}
-		for (int i = 0; i < amount; i++)
-		{
-			who.addCards(deck[0]);
-			deck.RemoveAt(0);
-		}
-	}
-	public void resetDeck()
-	{ //this resets the deck when all of the cards run out
-		print("reseting");
-		foreach (CardDisplay x in discard)
-		{
-			if (x.getNumb() == 13 || x.getNumb() == 14)
-			{
-				x.changeColor("Black");
-			}
-			deck.Add(x);
-		}
-		shuffle();
-		CardDisplay last = discard[discard.Count - 1];
-		discard.Clear();
-		discard.Add(last);
-	}
-	public void specialCardPlay(IPlayerInterface player, int cardNumb)
-	{ //takes care of all special cards played
-		int who = players.FindIndex(e => e.Equals(player)) + (reverse ? -1 : 1);
-		if (who >= players.Count)
-			who = 0;
-		else if (who < 0)
-			who = players.Count - 1;
+    public void ChangeReadyClicks()
+    {
+        ReadyClicks++;
+        Debug.Log(ReadyClicks);
+    }
 
-		switch (cardNumb)
-		{
-			case 10:
-				players[who].skipStatus = true;
-				break;
-			case 11:
-				reverse = !reverse;
-				int difference = 0;
-				if (reverse)
-				{
-					difference = who - 2;
-					if (difference >= 0)
-						where = difference;
-					else
-					{
-						difference = Mathf.Abs(difference);
-						where = players.Count - difference;
-					}
-				}
-				else
-				{
-					difference = who + 2;
-					if (difference > players.Count - 1)
-						where = difference - players.Count;
-					else
-						where = difference;
-				}
-				break;
-			case 12:
-				draw(2, players[who]);
-				break;
-			case 14:
-				draw(4, players[who]);
-				break;
-		}
-		if (cardNumb != 14)
-			this.enabled = true;
-	}
-	public void pause(bool turnOnOff)
-	{ //turns the pause canvas on/off
-		if (turnOnOff)
-		{
-			pauseCan.SetActive(true);
-			enabledStat = this.enabled;
-			this.enabled = false;
-		}
-		else
-		{
-			pauseCan.SetActive(false);
-			this.enabled = enabledStat;
-		}
-	}
-	public void returnHome()
-	{ //loads the home screen
-		UnityEngine.SceneManagement.SceneManager.LoadScene("Start");
-	}
-	public void exit()
-	{ //quits the app
-		Application.Quit();
-	}
-	public void playAgain()
-	{ //resets everything after a game has been played
-		this.enabled = false;
-		reverse = false;
-		players.Clear();
-		dialogueText.text = "";
-		contentHolder.GetComponent<RectTransform>().localPosition = new Vector2(0, 0);
-		endCan.SetActive(false);
-		for (int i = playerHand.transform.childCount - 1; i >= 0; i--)
-		{
-			Destroy(playerHand.transform.GetChild(i).gameObject);
-		}
-		Destroy(discardPileObj);
-		where = 0;
-		Start();
-		this.enabled = true;
-	}
+    string ReturnColorName(int numb)
+    { //returns a color based on a number, used in setup
+        switch (numb)
+        {
+            case 0:
+                return "Green";
+            case 1:
+                return "Blue";
+            case 2:
+                return "Red";
+            case 3:
+                return "Yellow";
+        }
+        return "";
+    }
+
+    void Shuffle()
+    {
+       // Debug.Log("Shuffling Deck");
+        //shuffles the deck by changing cards around
+        for (int i = 0; i < deck.Count; i++)
+        {
+            CardDisplay temp = deck.ElementAt(i);
+            int posSwitch = Random.Range(0, deck.Count);
+            deck[i] = deck[posSwitch];
+            deck[posSwitch] = temp;
+        }
+    }
+
+    void DealFirstCard()
+    {
+        Debug.Log("Starting Game. Dealing first Card");
+        // Spawns first card
+        CardDisplay first = null;
+
+        // Number Card
+        if (deck[0].getNumb() < 10)
+        {
+            first = deck[0];
+        }
+        else
+        {
+            // Special Card
+            while (deck[0].getNumb() >= 10)
+            {
+                deck.Add(deck[0]);
+                deck.RemoveAt(0);
+            }
+            first = deck[0];
+        }
+
+        // Put the first card in the deck in the discard pile
+        discard.Add(first);
+        discardPileObj = first.loadCard(GameObject.Find("DropZone").transform);
+        NetworkServer.Spawn(discardPileObj);
+
+        deck.RemoveAt(0);
+
+    }
+
+    [Command]
+    // All Command methods start with Cmd
+    public void CmdDealCards()
+    {
+        // Debug.Log("Dealing " + handList.Count + " to " + connectionToClient);
+
+        //addCards(deck[0]);
+        GameObject temp = deck[0].loadCard(GameObject.Find("Main Canvas").transform);
+
+        NetworkServer.Spawn(temp, connectionToClient);
+
+       // RpcShowCard(temp, "Dealt");
+
+        deck.RemoveAt(0);
+
+        //  Debug.Log("A Client called a command, client's id is: " + connectionToClient);
+    }
+
+
+    public void DealStartHand()
+    {
+        Debug.Log("Deal starting Hand for each player");
+        // TODO: Add for each player in game deal hand cards
+
+        foreach (IPlayerInterface x in players)
+        {
+            for (int i = 0; i < 7; i++)
+            {
+                x.addCards(deck[0]);
+                deck.RemoveAt(0);
+            }
+        }
+
+    }
 }

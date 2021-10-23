@@ -4,9 +4,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 
-public class AiPlayer : MonoBehaviour, IPlayerInterface
+public class AiPlayer : MonoBehaviour
 {
-
+	/*
 	bool skip = false;
 	bool drew = false;
 	string AiName;
@@ -158,4 +158,5 @@ public class AiPlayer : MonoBehaviour, IPlayerInterface
 	{ //returns cards left
 		return handList.Count;
 	}
+	*/
 }

@@ -5,25 +5,28 @@ using UnityEngine.UI;
 
 public class CardFlipper : MonoBehaviour
 {
-    public Sprite CardFront;
-    public Sprite CardBack;
-
+    
+     GameObject CardBack;
+   // bool isFlipped = false;
 
     public void Flip()
     {
-        Sprite currentSprite = gameObject.GetComponent<Image>().sprite;
-
-
-        // Cheap implementation so enemy cant see cards
-        // not cheat proof tho
-        if(currentSprite == CardFront)
-        {
-            gameObject.GetComponent<Image>().sprite = CardBack;
-        }
-        else
-        {
-            gameObject.GetComponent<Image>().sprite = CardFront;
-        }
+       // CardBack = transform.GetChild(5).GetComponent<GameObject>();
+       //
+       //
+       // // Cheap implementation so enemy cant see cards
+       // // not cheat proof tho
+       // if(isFlipped)
+       // {
+       //     CardBack.SetActive(true);
+       //
+       //     isFlipped = !isFlipped;
+       // }
+       // else
+       // {
+       //     CardBack.SetActive(false);
+       // }
+       // Debug.Log(isFlipped);
 
         // other way to write this above
         // gameObject.GetComponent<Image>().sprite = (gameObject.GetComponent<Image>().sprite == CardFront) ? CardBack : CardFront;
