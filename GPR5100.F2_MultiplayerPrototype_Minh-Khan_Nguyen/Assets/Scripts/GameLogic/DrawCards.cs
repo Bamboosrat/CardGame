@@ -12,6 +12,8 @@ public class DrawCards : NetworkBehaviour
         // Store the client's identity to networkIdentity on click and get access to PlayerManager script
         NetworkIdentity networkIdentity = NetworkClient.connection.identity;
         playerManager = networkIdentity.GetComponent<PlayerManager>();
+        //Debug.Log("Drawing card");
+        playerManager.DrawCard();
 
     }
 }

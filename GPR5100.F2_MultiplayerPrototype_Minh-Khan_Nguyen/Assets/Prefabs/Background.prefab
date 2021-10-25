@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7029107076951210984}
   - component: {fileID: 7029107076951210986}
   - component: {fileID: 7029107076951210987}
+  - component: {fileID: 366950913611867019}
   m_Layer: 5
   m_Name: Background
   m_TagString: Untagged
@@ -75,3 +76,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &366950913611867019
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7029107076951210985}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b91ecbcc199f4492b9a91e820070131, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sceneId: 0
+  serverOnly: 0
+  visible: 0
+  m_AssetId: 0b4e8fc319dd0fa419b8f4a9d39b2f1c
+  hasSpawned: 0

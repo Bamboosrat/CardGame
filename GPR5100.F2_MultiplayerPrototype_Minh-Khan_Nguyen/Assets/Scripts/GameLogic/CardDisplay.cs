@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
 /*
 	* 1-9 are regular
 	* 10 is skip
@@ -22,7 +21,8 @@ public class CardDisplay
     { //defines the object
         number = numb;
         this.color = color;
-        cardObj = obj;
+		cardObj = obj;
+		
     }
 
 	public GameObject loadCard(int x, int y, Transform parent)
@@ -34,7 +34,8 @@ public class CardDisplay
 
 	public GameObject loadCard(Transform parent)
 	{ //does all the setup for loading. Used if card doesn't need a specific position		
-		GameObject temp = PlayerManager.Instantiate(cardObj);
+		GameObject temp = GameManager.Instantiate(cardObj);
+		
 		temp.name = color + number;
 		if (number < 10)
 		{

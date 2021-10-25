@@ -21,76 +21,61 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
 {
     // public bool IsMyTurn = false;
     bool skip = false;
-    bool drew = false;
-    bool playedWild;
-    string playerName;
+   // bool drew = false;
+   // bool playedWild;
+   // string playerName;
 
     List<CardDisplay> handList = new List<CardDisplay>();
     public GameManager gameManager;
 
-    [SyncVar]
-    int cardsPlayed = 0;
+   // [SyncVar]
+   // int cardsPlayed = 0;
+    //int cardsDrawn = 0;
 
-   	public bool skipStatus
-   	{ //returns if the player should be skipped
-   		get { return skip; }
-   		set { skip = value; }
-   	}
+  	public bool skipStatus
+  	{ //returns if the player should be skipped
+  		get { return skip; }
+  		set { skip = value; }
+  	}
 
-    public override void OnStartClient()
-    {
-        base.OnStartClient();
-
-        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
-
-        Debug.Log("Client ready");
-    }
-
-    public void PlayCard(GameObject card)
+        public void PlayCard(GameObject card)
     {
         CmdPlayCard(card);
-        cardsPlayed++;
-        Debug.Log(cardsPlayed);
+       // cardsPlayed++;
+        //Debug.Log(cardsPlayed);
     }
 
     [Command]
     void CmdPlayCard(GameObject card)
     {
-        RpcShowCard(card, "Played");
+        gameManager.RpcShowCard(card, "Played");
     }
 
-    // All Rpc methods start with Rpc
-    [ClientRpc]
-    void RpcShowCard(GameObject card, string type)
+    public void DrawCard()
     {
-        
-        if(type == "Dealt")
-        {
-            if (hasAuthority)
-            {
-                card.transform.SetParent(gameManager.PlayerArea.transform, false);
-            }
-            else
-            {
-                card.transform.SetParent(gameManager.Player3Area.transform, false);
-                card.GetComponent<CardFlipper>().Flip();
-            }
-        } 
-        else if (type == "Played")
-        {
-            card.transform.SetParent(gameManager.DropZone.transform, false);
-
-            if(!hasAuthority)
-            card.GetComponent<CardFlipper>().Flip();
-        }
+        CmdDealCards();
     }
 
+    [Command]
+    // When this method gets called, add 1 hand card to the authorised player handlist then, load and display it, remove the card from the global deck after
+    public void CmdDealCards()
+    {
+        // Debug.Log("Dealing " + handList.Count + " to " + connectionToClient);
+        addCards(gameManager.deck[0]);
+        GameObject temp = gameManager.deck[0].loadCard(GameObject.Find("Main Canvas").transform);
 
+        NetworkServer.Spawn(temp, connectionToClient);
+
+        gameManager.RpcShowCard(temp, "Dealt");
+        gameManager.deck.RemoveAt(0);
+
+        //Debug.Log("A Client called a command, client's id is: " + connectionToClient);
+    }
 
     public void turn()
     { //does the turn
-        playedWild = false;
-        drew = false;
+       //playedWild = false;
+       //drew = false;
         int i = 0;
         foreach (CardDisplay x in handList)
         { //foreach card in hand
