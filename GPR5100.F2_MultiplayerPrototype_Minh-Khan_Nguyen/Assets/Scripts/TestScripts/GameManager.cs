@@ -155,7 +155,7 @@ public class GameManager : NetworkBehaviour
         // Put the first card in the deck in the discard pile
         discard.Add(first);
         discardPileObj = first.loadCard(GameObject.Find("DropZone").transform);
-        NetworkServer.Spawn(discardPileObj, connectionToClient);
+        NetworkServer.Spawn(discardPileObj);
 
         deck.RemoveAt(0);
     }

@@ -190,7 +190,7 @@ MonoBehaviour:
   disconnectInactiveConnections: 0
   disconnectInactiveTimeout: 60
   authenticator: {fileID: 0}
-  playerPrefab: {fileID: 4950096694371726333, guid: afa0bdc34c32c8441ac897e9aefbd113, type: 3}
+  playerPrefab: {fileID: 5120075037644812592, guid: ba241f117fb2ae04aaf076061546cfbc, type: 3}
   autoCreatePlayer: 1
   playerSpawnMethod: 0
   spawnPrefabs:
@@ -204,8 +204,9 @@ MonoBehaviour:
   - {fileID: 7029107076951210985, guid: 0b4e8fc319dd0fa419b8f4a9d39b2f1c, type: 3}
   - {fileID: 336475232942076532, guid: cfa2b05a3e51a5e45b8b627cd67dc1d4, type: 3}
   - {fileID: 1593033903171637860, guid: 2743922f756a75846a8c337488748b9a, type: 3}
+  - {fileID: 1917977495567720280, guid: 103396d3d0fcebc40ad03dbaa38902d0, type: 3}
   - {fileID: 3150751159124498139, guid: f0a62889f75d6ef418b4df688dfe4857, type: 3}
-  - {fileID: 3150751159124498139, guid: f0a62889f75d6ef418b4df688dfe4857, type: 3}
+  - {fileID: 4070466147596024571, guid: c649d28dfee709247b7dc6f13ea54a75, type: 3}
   minPlayers: 1
   menuScene: Assets/Scenes/menuScene.unity
   roomPlayerPrefab: {fileID: 4070466147596024570, guid: ecfa6c5918ba17f4fbb44357a908e41c, type: 3}
