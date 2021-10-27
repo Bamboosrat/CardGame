@@ -53,23 +53,28 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
 
     public void DrawCard()
     {
-        CmdDealCards();
+        CmdDealCards(1);
     }
 
     [Command]
     // When this method gets called, add 1 hand card to the authorised player handlist then, load and display it, remove the card from the global deck after
-    public void CmdDealCards()
+    public void CmdDealCards(int amountOfCards)
     {
-        // Debug.Log("Dealing " + handList.Count + " to " + connectionToClient);
-        addCards(gameManager.deck[0]);
-        GameObject temp = gameManager.deck[0].loadCard(GameObject.Find("Main Canvas").transform);
 
-        NetworkServer.Spawn(temp, connectionToClient);
+        for (int i = 0; i < amountOfCards; i++)
+        {
+            addCards(gameManager.deck[0]);
+            GameObject temp = gameManager.deck[0].loadCard(GameObject.Find("Main Canvas").transform);
 
-        gameManager.RpcShowCard(temp, "Dealt");
-        gameManager.deck.RemoveAt(0);
+            NetworkServer.Spawn(temp, connectionToClient);
 
-        //Debug.Log("A Client called a command, client's id is: " + connectionToClient);
+            if(amountOfCards == 7)
+                gameManager.RpcShowCard(temp, "Start");
+            else
+            gameManager.RpcShowCard(temp, "Dealt");
+
+            gameManager.deck.RemoveAt(0);
+        }
     }
 
     public void turn()
@@ -79,12 +84,12 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
         int i = 0;
         foreach (CardDisplay x in handList)
         { //foreach card in hand
-
+            
             GameObject temp = null;
-            if (GameObject.Find("GameManager").GetComponent<GameManager>().PlayerArea.transform.childCount > i) //is the card already there or does it need to be loaded
-                temp = GameObject.Find("GameManager").GetComponent<GameManager>().PlayerArea.transform.GetChild(i).gameObject;
+            if (gameManager.PlayerArea.transform.childCount > i) //is the card already there or does it need to be loaded
+                temp = gameManager.PlayerArea.transform.GetChild(i).gameObject;
             else
-                temp = x.loadCard(GameObject.Find("GameManager").GetComponent<GameManager>().PlayerArea.transform);
+                temp = x.loadCard(gameManager.PlayerArea.transform);
 
 
            // if (handList[i].Equals(PlayerManager.discard[PlayerManager.discard.Count - 1]) || handList[i].getNumb() >= 13)
@@ -103,6 +108,11 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
 	{ //recieves cards to add to the hand
 		handList.Add(other);
 	}
+
+    public void removeCards(CardDisplay other)
+    {
+        handList.Remove(other);
+    }
     
     public bool Equals(IPlayerInterface other)
     { //equals function based on name

@@ -158,6 +158,7 @@ namespace Lobby
                     NetworkServer.Destroy(conn.identity.gameObject);
 
                     NetworkServer.ReplacePlayerForConnection(conn, gameplayerInstance.gameObject);
+                    
                 }
             }
 

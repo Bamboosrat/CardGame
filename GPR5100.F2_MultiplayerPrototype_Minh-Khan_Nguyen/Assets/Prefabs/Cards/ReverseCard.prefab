@@ -269,7 +269,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 60, y: 83.5}
+  m_SizeDelta: {x: 120, y: 177}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3173903970053658949
 CanvasRenderer:
@@ -476,8 +476,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ae2d888517827a4898b24dff65285e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CardFront: {fileID: 21300000, guid: ed30cf021981c5f4591af9c0fc11cf09, type: 3}
-  CardBack: {fileID: 21300000, guid: e37dbaf1502eb8c49a5ff51ea95e142f, type: 3}
 --- !u!1 &8412237409658518837
 GameObject:
   m_ObjectHideFlags: 0

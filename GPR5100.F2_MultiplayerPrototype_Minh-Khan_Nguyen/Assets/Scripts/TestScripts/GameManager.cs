@@ -12,6 +12,9 @@ public class GameManager : NetworkBehaviour
     public GameObject Player2Area;
     public GameObject Player3Area;
     public GameObject Player4Area;
+
+    private List<GameObject> playerAreaList = new List<GameObject>();
+
     public GameObject DropZone;
 
     public GameObject regCardPrefab;
@@ -47,18 +50,22 @@ public class GameManager : NetworkBehaviour
         Player2Area = GameObject.Find("Player2Area");
         Player3Area = GameObject.Find("Player3Area");
         Player4Area = GameObject.Find("Player4Area");
+
+
         DropZone = GameObject.Find("DropZone");
 
-        GenerateDeck();
 
-        // cant find GameManager in scene when loaded so gotta backward logic this shit
+        // cant find GameManager in scene when loaded in PlayerManager so gotta backward logic this shit and give everyone a GameManager here
         foreach (var item in Room.GamePlayers)
         {
             item.GetComponent<PlayerManager>().gameManager = this.gameObject.GetComponent<GameManager>();
+            
         }
 
+        GenerateDeck();
     }
 
+    
     void GenerateDeck()
     {
         Debug.Log("Generating Deck");
@@ -97,7 +104,7 @@ public class GameManager : NetworkBehaviour
         Shuffle();
         DealFirstCard();
         //DealStartHand();
-        Debug.Log(deck.Count);
+        //Debug.Log(deck[0].getNumb());
     }
 
 
@@ -186,22 +193,24 @@ public class GameManager : NetworkBehaviour
             if (!hasAuthority)
                 card.GetComponent<CardFlipper>().Flip();
         }
+        else if(type == "Start")
+        {
+            
+        }
     }
 
 
     public void DealStartHand()
     {
-        Debug.Log("Deal starting Hand for each player");
-        // TODO: Add for each player in game deal hand cards
-        
-       foreach (NetworkGamePlayerLobby x in Room.GamePlayers)
+       foreach (var x in Room.GamePlayers)
        {
-            PlayerManager temp = x.GetComponent<PlayerManager>();
-           for (int i = 0; i < 7; i++)
-           {
-               temp.addCards(deck[0]);
-               deck.RemoveAt(0);
-           }
+           
+                x.GetComponent<PlayerManager>().CmdDealCards(7);
+              // Debug.Log("Deal starting Hand for each player");
+              // x.GetComponent<PlayerManager>().addCards(deck[0]);
+              // deck.RemoveAt(0);
+           
+              // x.GetComponent<PlayerManager>().turn();
        }
 
     }
