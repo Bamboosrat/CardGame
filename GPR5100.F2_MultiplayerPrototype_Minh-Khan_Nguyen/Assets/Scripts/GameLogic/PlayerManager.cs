@@ -48,7 +48,7 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
     [Command]
     void CmdPlayCard(GameObject card)
     {
-        gameManager.RpcShowCard(card, "Played");
+        gameManager.RpcShowCard(card, "Played", gameObject.GetComponent<NetworkIdentity>().connectionToClient.identity);
     }
 
     public void DrawCard()
@@ -56,7 +56,7 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
         CmdDealCards(1);
     }
 
-    [Command]
+    [Command(requiresAuthority = false)]
     // When this method gets called, add 1 hand card to the authorised player handlist then, load and display it, remove the card from the global deck after
     public void CmdDealCards(int amountOfCards)
     {
@@ -68,10 +68,7 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
 
             NetworkServer.Spawn(temp, connectionToClient);
 
-            if(amountOfCards == 7)
-                gameManager.RpcShowCard(temp, "Start");
-            else
-            gameManager.RpcShowCard(temp, "Dealt");
+            gameManager.RpcShowCard(temp, "Dealt", this.gameObject.GetComponent<NetworkIdentity>().connectionToClient.identity);
 
             gameManager.deck.RemoveAt(0);
         }

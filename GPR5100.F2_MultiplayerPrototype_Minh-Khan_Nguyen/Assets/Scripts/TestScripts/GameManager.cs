@@ -61,11 +61,11 @@ public class GameManager : NetworkBehaviour
             item.GetComponent<PlayerManager>().gameManager = this.gameObject.GetComponent<GameManager>();
             
         }
-
         GenerateDeck();
+        DealStartHand();
     }
 
-    
+
     void GenerateDeck()
     {
         Debug.Log("Generating Deck");
@@ -103,7 +103,7 @@ public class GameManager : NetworkBehaviour
         }
         Shuffle();
         DealFirstCard();
-        //DealStartHand();
+        
         //Debug.Log(deck[0].getNumb());
     }
 
@@ -162,7 +162,6 @@ public class GameManager : NetworkBehaviour
         // Put the first card in the deck in the discard pile
         discard.Add(first);
         discardPileObj = first.loadCard(GameObject.Find("DropZone").transform);
-        NetworkServer.Spawn(discardPileObj);
 
         deck.RemoveAt(0);
     }
@@ -171,12 +170,12 @@ public class GameManager : NetworkBehaviour
 
     // All Rpc methods start with Rpc
     [ClientRpc]
-    public void RpcShowCard(GameObject card, string type)
+    public void RpcShowCard(GameObject card, string type, NetworkIdentity conn)
     {
 
         if (type == "Dealt")
         {
-            if (hasAuthority)
+            if (conn.hasAuthority)
             {
                 card.transform.SetParent(PlayerArea.transform, false);
             }
@@ -190,13 +189,10 @@ public class GameManager : NetworkBehaviour
         {
             card.transform.SetParent(DropZone.transform, false);
 
-            if (!hasAuthority)
+            if (!conn.hasAuthority)
                 card.GetComponent<CardFlipper>().Flip();
         }
-        else if(type == "Start")
-        {
-            
-        }
+        
     }
 
 
@@ -206,11 +202,6 @@ public class GameManager : NetworkBehaviour
        {
            
                 x.GetComponent<PlayerManager>().CmdDealCards(7);
-              // Debug.Log("Deal starting Hand for each player");
-              // x.GetComponent<PlayerManager>().addCards(deck[0]);
-              // deck.RemoveAt(0);
-           
-              // x.GetComponent<PlayerManager>().turn();
        }
 
     }
