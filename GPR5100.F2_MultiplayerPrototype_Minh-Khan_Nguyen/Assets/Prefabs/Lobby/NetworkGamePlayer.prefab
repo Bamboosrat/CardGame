@@ -10,9 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4070466147596024564}
   - component: {fileID: 4070466147596024565}
-  - component: {fileID: 1456792465768327483}
   - component: {fileID: 2063024260399751967}
-  - component: {fileID: -2976223160475901205}
   m_Layer: 0
   m_Name: NetworkGamePlayer
   m_TagString: Untagged
@@ -51,20 +49,6 @@ MonoBehaviour:
   visible: 0
   m_AssetId: c649d28dfee709247b7dc6f13ea54a75
   hasSpawned: 0
---- !u!114 &1456792465768327483
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4070466147596024571}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 033c4669e9332e140af7603d1f1556db, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  syncMode: 0
-  syncInterval: 0.1
 --- !u!114 &2063024260399751967
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -79,33 +63,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  gameManager: {fileID: 0}
---- !u!114 &-2976223160475901205
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4070466147596024571}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2f74aedd71d9a4f55b3ce499326d45fb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  syncMode: 0
-  syncInterval: 0.1
-  clientAuthority: 1
-  sendInterval: 0.05
-  syncPosition: 1
-  syncRotation: 1
-  syncScale: 0
-  interpolatePosition: 1
-  interpolateRotation: 1
-  interpolateScale: 1
-  bufferTimeMultiplier: 3
-  bufferSizeLimit: 64
-  catchupThreshold: 6
-  catchupMultiplier: 0.1
-  showGizmos: 0
-  showOverlay: 0
-  overlayColor: {r: 0, g: 0, b: 0, a: 0.5}
+  IsMyTurn: 0

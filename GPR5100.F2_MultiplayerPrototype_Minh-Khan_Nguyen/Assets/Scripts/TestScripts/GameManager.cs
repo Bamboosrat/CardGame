@@ -7,26 +7,18 @@ using Lobby;
 
 public class GameManager : NetworkBehaviour
 {
-    
-    public GameObject PlayerArea;
-    public GameObject Player2Area;
-    public GameObject Player3Area;
-    public GameObject Player4Area;
+    private CardDeck cardDeck;
+    private CardDeck discardDeck;
 
-    private List<GameObject> playerAreaList = new List<GameObject>();
+    public Card TopCard => discardDeck.PeekTopCard();
 
-    public GameObject DropZone;
+    private int where = 0;
+   // private float timer = 0;
+    private bool reverse = false;
 
-    public GameObject regCardPrefab;
-    public GameObject skipCardPrefab;
-    public GameObject drawCardPrefab;
-    public GameObject wildCardPrefab;
-    public GameObject reverseCardPrefab;
+    [SyncVar(hook = nameof(UpdateClientTurn))]
+    public GameState gameState;
 
-    public  List<CardDisplay> deck = new List<CardDisplay>();
-    public  List<CardDisplay> discard = new List<CardDisplay>();
-
-    private GameObject discardPileObj;
 
     private NetworkManagerLobby room;
     private NetworkManagerLobby Room
@@ -38,171 +30,154 @@ public class GameManager : NetworkBehaviour
         }
     }
 
-    void Start()
+    [Server]
+    void Awake()
     {
-       // UIManager = GameObject.Find("UIManager").GetComponent<UIManager>();
-      //  UIManager.UpdateButtonText(GameState);
 
-        discard.Clear();
-        deck.Clear();
+        Debug.Log("Start GameManager");
 
-        PlayerArea = GameObject.Find("PlayerArea");
-        Player2Area = GameObject.Find("Player2Area");
-        Player3Area = GameObject.Find("Player3Area");
-        Player4Area = GameObject.Find("Player4Area");
+        cardDeck = new CardDeck();
+        discardDeck = new CardDeck();
 
+        cardDeck.GenerateDeck();
 
-        DropZone = GameObject.Find("DropZone");
-
-
-        // cant find GameManager in scene when loaded in PlayerManager so gotta backward logic this shit and give everyone a GameManager here
-        foreach (var item in Room.GamePlayers)
-        {
-            item.GetComponent<PlayerManager>().gameManager = this.gameObject.GetComponent<GameManager>();
-            
-        }
-        GenerateDeck();
-        DealStartHand();
+        DealFirstCard();
     }
 
+    [Server]
+   void DealFirstCard()
+   {
+       Debug.Log("Starting Game. Dealing first Card");
+       // Spawns first card
+       List<Card> tempCardList = new List<Card>();
 
-    void GenerateDeck()
-    {
-        Debug.Log("Generating Deck");
+        while (cardDeck.PeekTopCard().number >= 10)
+        {
+            tempCardList.Add(cardDeck.GetTopCard());
+        }
+        Debug.Log("Set First Card: " + cardDeck.PeekTopCard().ToString());
+        discardDeck.AddCard(cardDeck.GetTopCard());
 
-        // Generate deck
-        for (int i = 0; i < 15; i++)
-        { //setups the deck by making cards
-            for (int j = 0; j < 8; j++)
+
+        if (tempCardList.Count != 0) {
+            foreach (Card cards in tempCardList)
             {
-                switch (i)
-                {
-                    case 10:
-                        deck.Add(new CardDisplay(i, ReturnColorName(j % 4), regCardPrefab));
-                        break;
-                    case 11:
-                        deck.Add(new CardDisplay(i, ReturnColorName(j % 4), reverseCardPrefab));
-                        break;
-                    case 12:
-                        deck.Add(new CardDisplay(i, ReturnColorName(j % 4), drawCardPrefab));
-                        break;
-                    case 13:
-                        deck.Add(new CardDisplay(i, "Black", wildCardPrefab));
-                        break;
-                    case 14:
-                        deck.Add(new CardDisplay(i, "Black", wildCardPrefab));
-                        break;
-                    default:
-                        deck.Add(new CardDisplay(i, ReturnColorName(j % 4), regCardPrefab));
-                        break;
-                }
-
-                if ((i == 0 || i >= 13) && j >= 3)
-                    break;
+                cardDeck.AddCard(cards);
             }
         }
-        Shuffle();
-        DealFirstCard();
-        
-        //Debug.Log(deck[0].getNumb());
-    }
 
+        cardDeck.Shuffle();
 
-    string ReturnColorName(int numb)
-    { //returns a color based on a number, used in setup
-        switch (numb)
-        {
-            case 0:
-                return "Green";
-            case 1:
-                return "Blue";
-            case 2:
-                return "Red";
-            case 3:
-                return "Yellow";
-        }
-        return "";
-    }
+        GetComponent<CardDisplaySpawner>().SpawnCard(discardDeck.PeekTopCard(), CardDisplay.CardPosition.First, 0);
 
-    void Shuffle()
+   }
+
+    [Server]
+    public bool CanPlayCard(Card card)
     {
-       // Debug.Log("Shuffling Deck");
-        //shuffles the deck by changing cards around
-        for (int i = 0; i < deck.Count; i++)
-        {
-            CardDisplay temp = deck.ElementAt(i);
-            int posSwitch = Random.Range(0, deck.Count);
-            deck[i] = deck[posSwitch];
-            deck[posSwitch] = temp;
-        }
+       // Debug.Log("Try to play Card: " + card.ToString());
+       // Debug.Log("Top Card: " + TopCard.ToString());
+        return TopCard.IsPlayable(card);
     }
 
-    void DealFirstCard()
+    [Server]
+    public void PlayCard(Card card)
     {
-        Debug.Log("Starting Game. Dealing first Card");
-        // Spawns first card
-        CardDisplay first = null;
+        discardDeck.AddCard(card);
+    }
 
-        // Number Card
-        if (deck[0].getNumb() < 10)
+    [Server]
+    public void DealStartHand(PlayerManager playerM)
+    {
+       // Debug.Log("Deals start hand : "+ playerM);
+       // Debug.Log("Deals start hand : " + cardDeck);
+
+        for (int j = 0; j < 7; j++)
+            {
+            playerM.AddCard(cardDeck.GetTopCard());
+
+            }
+       // Debug.Log(playerM.getCardsLeft());
+    }
+
+    [Server]
+    public void DealCards(int amountOfCards, PlayerManager playerM)
+    {
+        if (cardDeck.IsDeckEmpty())
         {
-            first = deck[0];
+            cardDeck.ResetDeck(discardDeck);
         }
         else
         {
-            // Special Card
-            while (deck[0].getNumb() >= 10)
+
+            for (int j = 0; j < amountOfCards; j++)
             {
-                deck.Add(deck[0]);
-                deck.RemoveAt(0);
+                playerM.AddCard(cardDeck.GetTopCard());
+                //Debug.Log(playerM);
             }
-            first = deck[0];
         }
 
-        // Put the first card in the deck in the discard pile
-        discard.Add(first);
-        discardPileObj = first.loadCard(GameObject.Find("DropZone").transform);
-
-        deck.RemoveAt(0);
     }
 
-    
-
-    // All Rpc methods start with Rpc
-    [ClientRpc]
-    public void RpcShowCard(GameObject card, string type, NetworkIdentity conn)
+    private void UpdateClientTurn(GameState _oldGameState, GameState newGameState)
     {
-
-        if (type == "Dealt")
-        {
-            if (conn.hasAuthority)
-            {
-                card.transform.SetParent(PlayerArea.transform, false);
-            }
-            else
-            {
-                card.transform.SetParent(Player3Area.transform, false);
-                card.GetComponent<CardFlipper>().Flip();
-            }
-        }
-        else if (type == "Played")
-        {
-            card.transform.SetParent(DropZone.transform, false);
-
-            if (!conn.hasAuthority)
-                card.GetComponent<CardFlipper>().Flip();
-        }
-        
+        PlayerManager player = NetworkClient.connection.identity.GetComponent<PlayerManager>();
+        player.IsMyTurn = player.MyGameState == gameState;
+        //endTurnButton.interactable = player.IsMyTurn;
+        //endTurnButton.GetComponentInChildren<TextMeshProUGUI>().text = player.IsMyTurn ? "End Turn" : "Enemy Turn";
     }
 
+    public void SpecialCardPlay(PlayerManager player, Card _card)
+    { //takes care of all special cards played
+        int who = Room.GamePlayers.FindIndex(e => e.Equals(player)) + (reverse ? -1 : 1);
+        if (who >= Room.GamePlayers.Count)
+            who = 0;
+        else if (who < 0)
+            who = Room.GamePlayers.Count - 1;
 
-    public void DealStartHand()
-    {
-       foreach (var x in Room.GamePlayers)
-       {
-           
-                x.GetComponent<PlayerManager>().CmdDealCards(7);
-       }
+        switch (_card.number)
+        {
+            // Skip
+            case 10:
+                Room.GamePlayers[who].SkipStatus = true;
+                break;
 
+                // reverse
+            case 11:
+                reverse = !reverse;
+                int difference = 0;
+                if (reverse)
+                {
+                    difference = who - 2;
+                    if (difference >= 0)
+                        where = difference;
+                    else
+                    {
+                        difference = Mathf.Abs(difference);
+                        where = Room.GamePlayers.Count - difference;
+                    }
+                }
+                else
+                {
+                    difference = who + 2;
+                    if (difference > Room.GamePlayers.Count - 1)
+                        where = difference - Room.GamePlayers.Count;
+                    else
+                        where = difference;
+                }
+                break;
+
+                // draw 2
+            case 12:
+                DealCards(2, Room.GamePlayers[who]);
+                break;
+
+                // draw 4
+            case 14:
+                DealCards(4, Room.GamePlayers[who]);
+                break;
+        }
+      // if (_card.number != 14)
+      //     ColorChoicePanel.enabled = true;
     }
 }

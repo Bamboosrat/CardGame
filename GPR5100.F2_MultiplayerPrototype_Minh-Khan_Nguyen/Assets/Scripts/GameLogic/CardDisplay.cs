@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Mirror;
+using Lobby;
+
 /*
 	* 1-9 are regular
 	* 10 is skip
@@ -11,95 +14,157 @@ using UnityEngine.UI;
 	* 14 is wild draw 4
 	*/
 
-public class CardDisplay
+public class CardDisplay : NetworkBehaviour
 {
-    int number;
-    string color;
-    public GameObject cardObj;
 
-    public CardDisplay(int numb, string color, GameObject obj)
-    { //defines the object
-        number = numb;
-        this.color = color;
-		cardObj = obj;
-		
+    #region Field / Property
+    [SyncVar]
+	private Card card;
+	public Card Card => card;
+
+	[SyncVar]
+	public CardPosition cardPosition;
+
+	/// <summary>
+	/// OwnerID is the same as PlayerID on PlayerManager
+	/// OwnerID 0 stands for already played or first card
+	/// </summary>
+	[SyncVar]
+	public int ownerID;
+
+	public enum CardPosition
+    {
+		Played,
+		Dealt,
+		First
     }
 
-	public GameObject loadCard(int x, int y, Transform parent)
-	{ //when ran, it tells where to load the card on the screen
-		GameObject temp = loadCard(parent);
-		temp.transform.localPosition = new Vector2(x, y + 540);
-		return temp;
-	}
 
-	public GameObject loadCard(Transform parent)
-	{ //does all the setup for loading. Used if card doesn't need a specific position		
-		GameObject temp = GameManager.Instantiate(cardObj);
-		
-		temp.name = color + number;
-		if (number < 10)
+	private NetworkManagerLobby room;
+	private NetworkManagerLobby Room
+	{
+		get
 		{
-			// Fuer jedes Child Component ausser "Cover" und "CardBack", veraendere die Werte im Textkomponent
-			foreach (Transform childs in temp.transform)
-			{
-				if (childs.name.Equals("Cover") || childs.name.Equals("CardBack"))
-					break;
-				childs.GetComponent<Text>().text = number.ToString();
-			}
-			temp.transform.GetChild(1).GetComponent<Text>().color = returnColor(color);
+			if (room != null) { return room; }
+			return room = NetworkManager.singleton as NetworkManagerLobby;
 		}
-		//else if (number == 10 || number == 11 || number == 12)
-		//{
-		//	temp.transform.GetChild(1).GetComponent<RawImage>().color = returnColor(color);
-		//}
-		//else if (number == 13)
-		//{
-		//	temp.transform.GetChild(0).GetComponent<Text>().text = "";
-		//	temp.transform.GetChild(2).GetComponent<Text>().text = "";
-		//}
-
-		// Veraendere die Farbe von der Karte abhaengig von "color"
-		temp.GetComponent<Image>().sprite = Resources.Load<Sprite>("Art/" + color + "Card");
-		temp.transform.SetParent(parent, false);
-		temp.transform.localScale = new Vector3(1, 1, 1);
-
-		
-		return temp;
 	}
 
-	Color returnColor(string what)
+    #endregion
+
+    [Server]
+	public void SetCardProperty(Card _card)
+    {
+		this.card = _card;
+
+    }
+
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+
+		// implement 
+		/*if(hasAuthority || cardPosition != CardPosition.Dealt)
+        {
+			if(isClientOnly)
+				CmdRequestCard();
+			else
+				LoadCardDisplay();
+        }*/
+
+		LoadCardDisplay();
+
+		// Debug.Log("CardPosition onStartClient: " + cardPosition);
+
+		if (cardPosition == CardPosition.Dealt)
+		{
+			int playerID = PlayerManager.localPlayerManager.PlayerID;
+			if (playerID == ownerID)
+				HierarchyManager.Instance.SetPlayerZoneAsParent(this);
+            else
+            {
+				if (Room.GamePlayers.Count == 2) 
+				{
+					HierarchyManager.Instance.SetNextPlayerZoneAsParent(this, 2);
+				}
+				else
+				{
+					int playerZoneID = ((ownerID - playerID) + 4) % 4;
+					HierarchyManager.Instance.SetNextPlayerZoneAsParent(this, playerZoneID);
+				}
+			}
+		}
+		else
+		{
+			HierarchyManager.Instance.SetDropZoneAsParent(this);
+		}
+	
+	}
+
+    #region LoadCard
+
+    [Client]
+	private void LoadCardDisplay()
+    {
+		name = card.Color + card.Number.ToString();
+
+		switch (card.number)
+		{
+			case int n when (n < 10):
+				foreach (Transform childs in transform)
+				{
+					if (childs.name.Equals("Cover") || childs.name.Equals("CardBack"))
+						break;
+
+					childs.GetComponent<Text>().text = card.Number.ToString();
+
+				}
+				transform.GetChild(1).GetComponent<Text>().color = ReturnColor(card.Color);
+				break;
+
+				// skip, reverse draw 2
+			case int n when (n >= 10 && n <= 12):
+				transform.GetChild(1).GetComponent<Image>().color = ReturnColor(card.Color);
+				break;
+
+				// special black wild
+			case 13:
+				transform.GetChild(0).GetComponent<Text>().text = "";
+				transform.GetChild(2).GetComponent<Text>().text = "";
+				break;
+		}
+
+		GetComponent<Image>().sprite = Resources.Load<Sprite>("Art/" + card.Color + "Card");
+		ShowCard(this, cardPosition);
+	}
+
+	private Color ReturnColor(Card.CardColor what)
 	{ //returns a color based on the color string
 		switch (what)
 		{
-			case "Green":
+			case Card.CardColor.green:
 				return new Color32(0x55, 0xaa, 0x55, 255);
-			case "Blue":
+			case Card.CardColor.blue:
 				return new Color32(0x55, 0x55, 0xfd, 255);
-			case "Red":
+			case Card.CardColor.red:
 				return new Color32(0xff, 0x55, 0x55, 255);
-			case "Yellow":
+			case Card.CardColor.yellow:
 				return new Color32(0xff, 0xaa, 0x00, 255);
 		}
 		return new Color(0, 0, 0);
 	}
 
+    #endregion
 
-	public int getNumb()
-	{ //accessor for getting the number
-		return number;
-	}
-	public string getColor()
-	{ //accessor for getting the color
-		return color;
-	}
-	public bool Equals(CardDisplay other)
-	{ //overides the original Equals so that color or number must be equal
-		return other.getNumb() == number || other.getColor().Equals(color);
-	}
-	public void changeColor(string newColor)
-	{ //mutator that changes the color of a wild card to make the color noticable
-		color = newColor;
-	}
-
-
+    public void ShowCard(CardDisplay _card, CardPosition type)
+    {
+			//Debug.Log("Card authority: " + hasAuthority);
+		if (!hasAuthority && type == CardPosition.Dealt)
+		{
+			//Debug.Log(type);
+			//Debug.Log("Flip card");
+            _card.GetComponent<CardFlipper>().Flip();
+			
+        }
+    }
 }

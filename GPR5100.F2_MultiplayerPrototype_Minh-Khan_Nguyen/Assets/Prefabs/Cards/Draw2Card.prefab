@@ -11,13 +11,14 @@ GameObject:
   - component: {fileID: 196266578132447726}
   - component: {fileID: 104376339282568042}
   - component: {fileID: 5010536518059854160}
-  - component: {fileID: 8744093385981074996}
   - component: {fileID: 1220926589079101608}
   - component: {fileID: 8060604585390492248}
   - component: {fileID: 1412561181243082816}
   - component: {fileID: 1707647183441985340}
   - component: {fileID: 7096499244763346771}
+  - component: {fileID: 8744093385981074996}
   - component: {fileID: 8490356359560241598}
+  - component: {fileID: 204568139204318763}
   m_Layer: 6
   m_Name: Draw2Card
   m_TagString: Untagged
@@ -87,23 +88,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &8744093385981074996
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2300376196675467643}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62dc75ca0068f564ba37befd5a8081d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  syncMode: 0
-  syncInterval: 0.1
-  Canvas: {fileID: 0}
-  DropZone: {fileID: 0}
-  playerManager: {fileID: 0}
 --- !u!114 &1220926589079101608
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -231,7 +215,7 @@ MonoBehaviour:
   sendInterval: 0.05
   syncPosition: 1
   syncRotation: 1
-  syncScale: 0
+  syncScale: 1
   interpolatePosition: 1
   interpolateRotation: 1
   interpolateScale: 1
@@ -242,6 +226,20 @@ MonoBehaviour:
   showGizmos: 0
   showOverlay: 0
   overlayColor: {r: 0, g: 0, b: 0, a: 0.5}
+--- !u!114 &8744093385981074996
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2300376196675467643}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62dc75ca0068f564ba37befd5a8081d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
 --- !u!114 &8490356359560241598
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -254,6 +252,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ae2d888517827a4898b24dff65285e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &204568139204318763
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2300376196675467643}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79fb07b7678457a4fb8c0847641b8738, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
+  cardPosition: 0
+  ownerID: 0
 --- !u!1 &3719017032474103782
 GameObject:
   m_ObjectHideFlags: 0
@@ -288,8 +302,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -37.75, y: 60.536133}
-  m_SizeDelta: {x: -84.5, y: -129.0722}
+  m_AnchoredPosition: {x: -31.9, y: 52.8}
+  m_SizeDelta: {x: -84.5, y: -128.99997}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4935443588282304627
 CanvasRenderer:
@@ -435,8 +449,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 17.75, y: -28}
-  m_SizeDelta: {x: -44.5, y: -64}
+  m_AnchoredPosition: {x: 31, y: -57.5}
+  m_SizeDelta: {x: -81.874, y: -132.8469}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7020832043141760318
 CanvasRenderer:
@@ -585,8 +599,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -20, y: -50}
+  m_AnchoredPosition: {x: -0.5, y: 0.80000305}
+  m_SizeDelta: {x: -58.063, y: -95.4558}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5957263652079159500
 CanvasRenderer:

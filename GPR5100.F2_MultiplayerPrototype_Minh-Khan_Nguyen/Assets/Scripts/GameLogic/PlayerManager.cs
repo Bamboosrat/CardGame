@@ -3,124 +3,204 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 using System.Linq;
+using Lobby;
 
 /*
 THINGS TO DO:
 
-        *add ready and start button
-        *deal 7 cards if both players are ready
-        *implement card logic and value
+        * Implement special card logic
+        * Especially wild card logic
+        * Turn based
+        * Game over
+        * Option menu
+        * Display name + correct color board
+        
+        
+        
+        Bug list: 
+        * Fix BUG in List.Find() method, if a card with the same value and color gets played, the other gets "played" too
+        
 */
-
-// [Server] means only the server is permitted to call this method.
-// [Command] means only client objects with authority can call this, and it only executes on the server. It is server code.
-// [ClientRpc] means only the server can call this method, but it only runs on clients.
-
 
 public class PlayerManager : NetworkBehaviour, IPlayerInterface
 {
-    // public bool IsMyTurn = false;
-    bool skip = false;
-   // bool drew = false;
-   // bool playedWild;
-   // string playerName;
+    #region Field / Property
+    public bool IsMyTurn = false;
+    private bool isCardPlayable = false;
+    private bool skip = false;
+    // bool drew = false;
+    // bool playedWild;
 
-    List<CardDisplay> handList = new List<CardDisplay>();
-    public GameManager gameManager;
+    public GameState MyGameState;
 
-   // [SyncVar]
-   // int cardsPlayed = 0;
-    //int cardsDrawn = 0;
+    private List<CardDisplay> handList = new List<CardDisplay>();
 
-  	public bool skipStatus
-  	{ //returns if the player should be skipped
-  		get { return skip; }
-  		set { skip = value; }
-  	}
+    // [SyncVar]
+    // int cardsPlayed = 0;
+    // int cardsDrawn = 0;
 
-        public void PlayCard(GameObject card)
+    public static PlayerManager localPlayerManager { get; private set; }
+
+    [SyncVar]
+    private int playerID;
+    public int PlayerID => playerID;
+
+    private NetworkManagerLobby room;
+    private NetworkManagerLobby Room
     {
-        CmdPlayCard(card);
+        get
+        {
+            if (room != null) { return room; }
+            return room = NetworkManager.singleton as NetworkManagerLobby;
+        }
+    }
+    #endregion
+
+    #region LobbyStuff
+
+    [SyncVar]
+    private string displayName = "Loading...";
+
+    public override void OnStartClient()
+    {
+        DontDestroyOnLoad(gameObject);
+        Room.GamePlayers.Add(this);
+
+
+    }
+
+    public override void OnStopClient()
+    {
+        Room.GamePlayers.Remove(this);
+    }
+
+    [Server]
+    public void SetDisplayName(string displayName)
+    {
+        this.displayName = displayName;
+    }
+
+    [Server]
+    public void SetPlayerID(int ID)
+    {
+        playerID = ID;
+    }
+
+    #endregion
+
+    public override void OnStartLocalPlayer()
+    {
+        base.OnStartLocalPlayer();
+        localPlayerManager = this;
+        CmdRequestStartHand();
+    }
+
+    [Command]
+    private void CmdRequestStartHand()
+    {
+        Room.GameManager.DealStartHand(this);
+    }
+
+    #region PlayCard
+
+    public void PlayCard(CardDisplay _card)
+    {
+        CmdPlayCard(_card.Card);
        // cardsPlayed++;
         //Debug.Log(cardsPlayed);
     }
 
     [Command]
-    void CmdPlayCard(GameObject card)
+    void CmdPlayCard(Card _card)
     {
-        gameManager.RpcShowCard(card, "Played", gameObject.GetComponent<NetworkIdentity>().connectionToClient.identity);
-    }
-
-    public void DrawCard()
-    {
-        CmdDealCards(1);
-    }
-
-    [Command(requiresAuthority = false)]
-    // When this method gets called, add 1 hand card to the authorised player handlist then, load and display it, remove the card from the global deck after
-    public void CmdDealCards(int amountOfCards)
-    {
-
-        for (int i = 0; i < amountOfCards; i++)
+        isCardPlayable = false;
+        //Debug.Log("Card Played");
+        if (Room.GameManager.CanPlayCard(_card))
         {
-            addCards(gameManager.deck[0]);
-            GameObject temp = gameManager.deck[0].loadCard(GameObject.Find("Main Canvas").transform);
-
-            NetworkServer.Spawn(temp, connectionToClient);
-
-            gameManager.RpcShowCard(temp, "Dealt", this.gameObject.GetComponent<NetworkIdentity>().connectionToClient.identity);
-
-            gameManager.deck.RemoveAt(0);
+            isCardPlayable = true;
+            Room.GameManager.PlayCard(_card);
+            Debug.Log("Player " + playerID  + " " + _card.ToString());
+            RemoveCard(_card);
+            Room.CardDisplaySpawner.SpawnCard(_card, CardDisplay.CardPosition.Played, 0);
+        }
+        else
+        {
+            TargetRPCCantPlayCard();
         }
     }
 
-    public void turn()
-    { //does the turn
-       //playedWild = false;
-       //drew = false;
-        int i = 0;
-        foreach (CardDisplay x in handList)
-        { //foreach card in hand
-            
-            GameObject temp = null;
-            if (gameManager.PlayerArea.transform.childCount > i) //is the card already there or does it need to be loaded
-                temp = gameManager.PlayerArea.transform.GetChild(i).gameObject;
-            else
-                temp = x.loadCard(gameManager.PlayerArea.transform);
-
-
-           // if (handList[i].Equals(PlayerManager.discard[PlayerManager.discard.Count - 1]) || handList[i].getNumb() >= 13)
-           // { //if the cards can be played
-           //     SetListeners(i, temp);
-           // }
-           // else
-           // {
-           //     temp.transform.GetChild(3).gameObject.SetActive(true); //otherwise black them out
-           // }
-           // i++;
-        }
+    [TargetRpc]
+    private void TargetRPCCantPlayCard()
+    {
+        Debug.Log("Not Allowed to play Card");
+        isCardPlayable = false;
     }
 
-    public void addCards(CardDisplay other)
-	{ //recieves cards to add to the hand
-		handList.Add(other);
+    #endregion
+
+    [Server]
+    private CardDisplay FindCard(Card card)
+    {
+        return handList.Find(cardInHandList => cardInHandList.Card.Number == card.Number && cardInHandList.Card.Color == card.Color);
+    }
+
+    [Command]
+    public void CmdRequestToDrawCards()
+    {
+        Room.GameManager.DealCards(1, this);
+    }
+
+    public void Turn()
+    {
+   
+    }
+
+    #region Add or Remove Method
+    [Server]
+    public void AddCard(Card other)
+	{ //receives cards to add to the hand
+        CardDisplay cardDisplay = Room.CardDisplaySpawner.SpawnCard(other, CardDisplay.CardPosition.Dealt, PlayerID, connectionToClient);
+        //bool succesfulTest = cardDisplay.netIdentity.AssignClientAuthority(connectionToClient);
+        //Debug.Log("Assign Client Authority: " + succesfulTest);
+		handList.Add(cardDisplay);
 	}
 
-    public void removeCards(CardDisplay other)
+    [Server]
+    public void RemoveCard(Card other)
     {
-        handList.Remove(other);
+        CardDisplay cardDisplay = FindCard(other);
+        //Debug.Log("Remove Card");
+        if(cardDisplay != null)
+        {
+            handList.Remove(cardDisplay);
+            NetworkServer.Destroy(cardDisplay.gameObject);
+        }
     }
-    
-    public bool Equals(IPlayerInterface other)
+    #endregion
+
+    #region Get Information
+    public bool IsCardPlayable()
+    {
+        return isCardPlayable;
+    }
+
+    public bool SkipStatus
+    { //returns if the player should be skipped
+        get { return skip; }
+        set { skip = value; }
+    }
+
+    public bool Equals(PlayerManager other)
     { //equals function based on name
-    	return other.getName().Equals(name);
+    	return other.GetName().Equals(displayName);
     }
-    public string getName()
+    public string GetName()
     { //returns the name
-    	return name;
+    	return displayName;
     }
-    public int getCardsLeft()
+    public int GetCardsLeft()
     { //gets how many cards are left in the hand
     	return handList.Count;
     }
+    #endregion
 }

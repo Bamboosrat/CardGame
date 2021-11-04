@@ -190,27 +190,21 @@ MonoBehaviour:
   disconnectInactiveConnections: 0
   disconnectInactiveTimeout: 60
   authenticator: {fileID: 0}
-  playerPrefab: {fileID: 5120075037644812592, guid: ba241f117fb2ae04aaf076061546cfbc, type: 3}
+  playerPrefab: {fileID: 4070466147596024571, guid: c649d28dfee709247b7dc6f13ea54a75, type: 3}
   autoCreatePlayer: 1
   playerSpawnMethod: 0
   spawnPrefabs:
-  - {fileID: 4070466147596024571, guid: ecfa6c5918ba17f4fbb44357a908e41c, type: 3}
-  - {fileID: 915507539384209021, guid: 7cf704dd658d23d4cb4825046b3dc044, type: 3}
   - {fileID: 2300376196675467643, guid: e3670da6a9471a146ae96c3e4819e5b1, type: 3}
   - {fileID: 5937224298882212189, guid: a9bc851ff26a7bc409a9e622ac38e201, type: 3}
   - {fileID: 3645024622459372372, guid: 169facfb726654645abd30b267b809f2, type: 3}
   - {fileID: 5898255486847122131, guid: eac7e256de750704188c9127e15a6367, type: 3}
   - {fileID: 6251967198445456680, guid: 9427dc2cf46b9304eb11055c39f6ce74, type: 3}
-  - {fileID: 7029107076951210985, guid: 0b4e8fc319dd0fa419b8f4a9d39b2f1c, type: 3}
-  - {fileID: 336475232942076532, guid: cfa2b05a3e51a5e45b8b627cd67dc1d4, type: 3}
-  - {fileID: 1593033903171637860, guid: 2743922f756a75846a8c337488748b9a, type: 3}
-  - {fileID: 1917977495567720280, guid: 103396d3d0fcebc40ad03dbaa38902d0, type: 3}
-  - {fileID: 3150751159124498139, guid: f0a62889f75d6ef418b4df688dfe4857, type: 3}
-  - {fileID: 4070466147596024571, guid: c649d28dfee709247b7dc6f13ea54a75, type: 3}
+  - {fileID: 4070466147596024571, guid: ecfa6c5918ba17f4fbb44357a908e41c, type: 3}
   minPlayers: 1
   menuScene: Assets/Scenes/menuScene.unity
+  gameManagerPrefab: {fileID: 647426551666484763, guid: 7cf704dd658d23d4cb4825046b3dc044, type: 3}
   roomPlayerPrefab: {fileID: 4070466147596024570, guid: ecfa6c5918ba17f4fbb44357a908e41c, type: 3}
-  gamePlayerPrefab: {fileID: 1456792465768327483, guid: c649d28dfee709247b7dc6f13ea54a75, type: 3}
+  gamePlayerPrefab: {fileID: 2063024260399751967, guid: c649d28dfee709247b7dc6f13ea54a75, type: 3}
 --- !u!4 &1066007791
 Transform:
   m_ObjectHideFlags: 0

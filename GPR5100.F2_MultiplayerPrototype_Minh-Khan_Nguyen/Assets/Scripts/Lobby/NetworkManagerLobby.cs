@@ -11,16 +11,21 @@ namespace Lobby
     {
         [SerializeField] private int minPlayers = 2;
         [Scene] [SerializeField] private string menuScene = string.Empty;
+        [SerializeField] private GameManager gameManagerPrefab;
 
-      // [Header("Maps")]
-      // [SerializeField] private int numberOfRounds = 1;
+        //Only on Server
+        public GameManager GameManager { get; private set; }
+        public CardDisplaySpawner CardDisplaySpawner { get; private set; }
+
+        // [Header("Maps")]
+        // [SerializeField] private int numberOfRounds = 1;
         //[SerializeField] private MapSet mapSet = null;
 
         [Header("Room")]
         [SerializeField] private NetworkRoomPlayerLobby roomPlayerPrefab = null;
 
         [Header("Game")]
-        [SerializeField] private NetworkGamePlayerLobby gamePlayerPrefab = null;
+        [SerializeField] private PlayerManager gamePlayerPrefab = null;
        // [SerializeField] private GameObject playerSpawnSystem = null;
        // [SerializeField] private GameObject roundSystem = null;
 
@@ -32,11 +37,11 @@ namespace Lobby
         public static event Action OnServerStopped;
 
         public List<NetworkRoomPlayerLobby> RoomPlayers { get; } = new List<NetworkRoomPlayerLobby>();
-        public List<NetworkGamePlayerLobby> GamePlayers { get; } = new List<NetworkGamePlayerLobby>();
+        public List<PlayerManager> GamePlayers { get; } = new List<PlayerManager>();
 
         public override void OnStartServer() => spawnPrefabs = Resources.LoadAll<GameObject>("SpawnablePrefabs").ToList();
 
-        public override void OnStartClient()
+       /* public override void OnStartClient()
         {
             var spawnablePrefabs = Resources.LoadAll<GameObject>("SpawnablePrefabs");
 
@@ -44,7 +49,7 @@ namespace Lobby
             {
                 NetworkClient.RegisterPrefab(prefab);
             }
-        }
+        }*/
 
         public override void OnClientConnect(NetworkConnection conn)
         {
@@ -77,7 +82,7 @@ namespace Lobby
 
         public override void OnServerAddPlayer(NetworkConnection conn)
         {
-            if (SceneManager.GetActiveScene().path == menuScene)
+            if (SceneManager.GetActiveScene().name == "menuScene")
             {
                 bool isLeader = RoomPlayers.Count == 0;
 
@@ -134,7 +139,7 @@ namespace Lobby
 
         public void StartGame()
         {
-            if (SceneManager.GetActiveScene().path == menuScene)
+            if (SceneManager.GetActiveScene().name == "menuScene")
             {
                 if (!IsReadyToStart()) { return; }
 
@@ -147,13 +152,15 @@ namespace Lobby
         public override void ServerChangeScene(string newSceneName)
         {
             // From menu to game
-            if (SceneManager.GetActiveScene().path == menuScene /* && newSceneName.StartsWith("Scene_Map")*/)
+            if (SceneManager.GetActiveScene().name == "menuScene"  && newSceneName.StartsWith("inGameUnoScene"))
             {
                 for (int i = RoomPlayers.Count - 1; i >= 0; i--)
                 {
                     var conn = RoomPlayers[i].connectionToClient;
                     var gameplayerInstance = Instantiate(gamePlayerPrefab);
                     gameplayerInstance.SetDisplayName(RoomPlayers[i].DisplayName);
+                    gameplayerInstance.SetPlayerID(i + 1);
+
 
                     NetworkServer.Destroy(conn.identity.gameObject);
 
@@ -165,17 +172,18 @@ namespace Lobby
             base.ServerChangeScene(newSceneName);
         }
 
-       // public override void OnServerSceneChanged(string sceneName)
-       // {
-       //     if (sceneName.StartsWith("Scene_Map"))
-       //     {
-       //         GameObject playerSpawnSystemInstance = Instantiate(playerSpawnSystem);
-       //         NetworkServer.Spawn(playerSpawnSystemInstance);
-       //
-       //         GameObject roundSystemInstance = Instantiate(roundSystem);
-       //         NetworkServer.Spawn(roundSystemInstance);
-       //     }
-       // }
+        public override void OnServerSceneChanged(string sceneName)
+        {
+            Debug.Log("Scene changed");
+            if (sceneName.StartsWith("inGameUnoScene"))
+            {
+                GameManager = Instantiate(gameManagerPrefab);
+                CardDisplaySpawner = GameManager.GetComponent<CardDisplaySpawner>();
+                NetworkServer.Spawn(GameManager.gameObject);
+            }
+        }
+
+    
 
         public override void OnServerReady(NetworkConnection conn)
         {

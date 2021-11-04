@@ -5,25 +5,27 @@ using UnityEngine;
 public interface IPlayerInterface
 {
 		// Options what to do when it's users turn
-		void turn();
+		void Turn();
 
 		// Was the Skip card played and am I skipped?
-		bool skipStatus
+		bool SkipStatus
 		{
 			get;
 			set;
 		}
 
 		// add cards to my hand
-		void addCards(CardDisplay other);
+		void AddCard(Card other);
+
+		void RemoveCard(Card other);
 		
 		// Get name of player
-		string getName();
+		string GetName();
 
 		// is the other player == ?
-		bool Equals(IPlayerInterface other);
+		bool Equals(PlayerManager other);
 
 		// How many cards do I have left?
-		int getCardsLeft();
+		int GetCardsLeft();
 	
 }

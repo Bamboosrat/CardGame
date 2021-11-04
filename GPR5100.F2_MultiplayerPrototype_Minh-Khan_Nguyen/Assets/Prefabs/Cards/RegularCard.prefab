@@ -109,8 +109,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 180}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -5, y: 2.5}
+  m_SizeDelta: {x: -10, y: -5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2532023924650967838
 CanvasRenderer:
@@ -142,7 +142,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: f7b7483a5a106e44193af82ad33f54e5, type: 3}
-    m_FontSize: 20
+    m_FontSize: 40
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 0
@@ -153,7 +153,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: ' 4'
+  m_Text: 4
 --- !u!1 &5142430307665733882
 GameObject:
   m_ObjectHideFlags: 0
@@ -260,8 +260,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 5, y: -2.5}
+  m_SizeDelta: {x: -10, y: -5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2052699588656733926
 CanvasRenderer:
@@ -293,7 +293,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: f7b7483a5a106e44193af82ad33f54e5, type: 3}
-    m_FontSize: 20
+    m_FontSize: 40
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 0
@@ -304,7 +304,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: ' 4'
+  m_Text: 4
 --- !u!1 &5937224298882212189
 GameObject:
   m_ObjectHideFlags: 0
@@ -316,13 +316,14 @@ GameObject:
   - component: {fileID: 5706226291166308808}
   - component: {fileID: 5547027674264730444}
   - component: {fileID: 576691199029498230}
-  - component: {fileID: -5417668282342357486}
   - component: {fileID: -2488155514357647218}
   - component: {fileID: 2473836103828640382}
   - component: {fileID: 6778969759962353766}
   - component: {fileID: 6501818994229159706}
   - component: {fileID: 3454829960229400437}
+  - component: {fileID: -5417668282342357486}
   - component: {fileID: 4060593050462386584}
+  - component: {fileID: -8728665442754405348}
   m_Layer: 6
   m_Name: RegularCard
   m_TagString: Untagged
@@ -392,23 +393,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &-5417668282342357486
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5937224298882212189}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62dc75ca0068f564ba37befd5a8081d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  syncMode: 0
-  syncInterval: 0.1
-  Canvas: {fileID: 0}
-  DropZone: {fileID: 0}
-  playerManager: {fileID: 0}
 --- !u!114 &-2488155514357647218
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -536,7 +520,7 @@ MonoBehaviour:
   sendInterval: 0.05
   syncPosition: 1
   syncRotation: 1
-  syncScale: 0
+  syncScale: 1
   interpolatePosition: 1
   interpolateRotation: 1
   interpolateScale: 1
@@ -547,6 +531,23 @@ MonoBehaviour:
   showGizmos: 0
   showOverlay: 0
   overlayColor: {r: 0, g: 0, b: 0, a: 0.5}
+--- !u!114 &-5417668282342357486
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5937224298882212189}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62dc75ca0068f564ba37befd5a8081d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
+  Canvas: {fileID: 0}
+  DropZone: {fileID: 0}
+  playerManager: {fileID: 0}
 --- !u!114 &4060593050462386584
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -559,6 +560,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ae2d888517827a4898b24dff65285e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &-8728665442754405348
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5937224298882212189}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79fb07b7678457a4fb8c0847641b8738, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
 --- !u!1 &8516483119962015928
 GameObject:
   m_ObjectHideFlags: 0
