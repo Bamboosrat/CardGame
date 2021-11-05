@@ -7,13 +7,17 @@ using Lobby;
 
 public class GameManager : NetworkBehaviour
 {
+
+    #region Field / Property
     private CardDeck cardDeck;
     private CardDeck discardDeck;
 
     public Card TopCard => discardDeck.PeekTopCard();
 
+    [SyncVar]
     private int where = 0;
-   // private float timer = 0;
+
+    private float timer = 0;
     private bool reverse = false;
 
     [SyncVar(hook = nameof(UpdateClientTurn))]
@@ -30,6 +34,8 @@ public class GameManager : NetworkBehaviour
         }
     }
 
+    #endregion
+
     [Server]
     void Awake()
     {
@@ -42,7 +48,97 @@ public class GameManager : NetworkBehaviour
         cardDeck.GenerateDeck();
 
         DealFirstCard();
+
+        Debug.Log(Room.GamePlayers.Count);
     }
+
+    private void Update()
+    {
+
+        if (Room.GamePlayers[where].TurnStatus())
+        {
+              if (Room.GamePlayers[where].SkipStatus)
+              {
+                  Room.GamePlayers[where].SkipStatus = false;
+                  where += reverse ? -1 : 1;
+                  if (where >= Room.GamePlayers.Count)
+                      where = 0;
+                  else if (where < 0)
+                      where = Room.GamePlayers.Count - 1;
+                  return;
+              }
+            
+              where += reverse ? -1 : 1;
+              Room.GamePlayers[where + (reverse ? 1 : -1)].Turn();
+                Debug.Log("AYAYA " + where);
+
+        }
+
+        if (where >= Room.GamePlayers.Count)
+        {
+            where = 0;
+            Debug.Log(where);
+        }
+        else if (where < 0)
+        {
+            where = Room.GamePlayers.Count - 1;
+            Debug.Log(where);
+        }
+
+        
+        #region Turn Management Test
+        /*
+      // bool win = UpdateCardsLeft();
+      // if (win)
+      // return;
+
+           if (Room.GamePlayers[where].TurnStatus())
+           {
+               if (Room.GamePlayers[where].SkipStatus)
+               {
+                   Room.GamePlayers[where].SkipStatus = false;
+                   where += reverse ? -1 : 1;
+                   if (where >= Room.GamePlayers.Count)
+                       where = 0;
+                   else if (where < 0)
+                       where = Room.GamePlayers.Count - 1;
+                   return;
+               }
+            
+               where += reverse ? -1 : 1;
+               Room.GamePlayers[where + (reverse ? 1 : -1)].Turn();
+           }
+           else if (Room.GamePlayers[where] != null)
+           {
+               if (Room.GamePlayers[where].SkipStatus)
+               {
+                   Room.GamePlayers[where].SkipStatus = false;
+                   where += reverse ? -1 : 1;
+                   if (where >= Room.GamePlayers.Count)
+                       where = 0;
+                   else if (where < 0)
+                       where = Room.GamePlayers.Count - 1;
+                   return;
+               }
+               timer += Time.deltaTime;
+               if (timer < 2.2)
+                   return;
+               timer = 0;
+               where += reverse ? -1 : 1;
+               Room.GamePlayers[where + (reverse ? 1 : -1)].Turn();
+           }
+           else
+               where += reverse ? -1 : 1;
+       
+           if (where >= Room.GamePlayers.Count)
+               where = 0;
+           else if (where < 0)
+               where = Room.GamePlayers.Count - 1;
+        */
+        #endregion
+    }
+
+    #region Card Methods
 
     [Server]
    void DealFirstCard()
@@ -115,37 +211,43 @@ public class GameManager : NetworkBehaviour
                 playerM.AddCard(cardDeck.GetTopCard());
                 //Debug.Log(playerM);
             }
+
+            playerM.EndTurn();
+            where += reverse ? -1 : 1;
         }
 
+        
+
     }
 
-    private void UpdateClientTurn(GameState _oldGameState, GameState newGameState)
-    {
-        PlayerManager player = NetworkClient.connection.identity.GetComponent<PlayerManager>();
-        player.IsMyTurn = player.MyGameState == gameState;
-        //endTurnButton.interactable = player.IsMyTurn;
-        //endTurnButton.GetComponentInChildren<TextMeshProUGUI>().text = player.IsMyTurn ? "End Turn" : "Enemy Turn";
-    }
+    #endregion
 
     public void SpecialCardPlay(PlayerManager player, Card _card)
     { //takes care of all special cards played
+
+        // Debug.Log("Special card played");
+        
         int who = Room.GamePlayers.FindIndex(e => e.Equals(player)) + (reverse ? -1 : 1);
         if (who >= Room.GamePlayers.Count)
             who = 0;
         else if (who < 0)
             who = Room.GamePlayers.Count - 1;
 
+        //Debug.Log(who);
+
         switch (_card.number)
         {
             // Skip
             case 10:
                 Room.GamePlayers[who].SkipStatus = true;
+                Debug.Log(who + " played (skip) " + _card.ToString());
                 break;
 
                 // reverse
             case 11:
                 reverse = !reverse;
                 int difference = 0;
+                Debug.Log(who + " played (reverse) " + _card.ToString());
                 if (reverse)
                 {
                     difference = who - 2;
@@ -170,14 +272,44 @@ public class GameManager : NetworkBehaviour
                 // draw 2
             case 12:
                 DealCards(2, Room.GamePlayers[who]);
+                Debug.Log(who + " played (draw2) " + _card.ToString());
                 break;
 
                 // draw 4
             case 14:
                 DealCards(4, Room.GamePlayers[who]);
+                Debug.Log(who + " played (wild4) " + _card.ToString());
                 break;
         }
-      // if (_card.number != 14)
-      //     ColorChoicePanel.enabled = true;
+        // if (_card.number != 14)
+        //    Debug.Log("Wild card played");
+        //ColorChoicePanel.enabled = true;
+
+        player.EndTurn();
+        where += reverse ? -1 : 1;
+    }
+
+    public bool UpdateCardsLeft()
+    { 
+
+        foreach (PlayerManager playerM in Room.GamePlayers)
+        {
+            if (playerM.GetCardsLeft() == 0)
+            {
+                Debug.Log(playerM.GetName() + " won!");
+               // endCan.SetActive(true);
+               // endCan.transform.Find("WinnerTxt").gameObject.GetComponent<Text>().text = string.Format("{0} Won!", playerM.GetName());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void UpdateClientTurn(GameState _oldGameState, GameState newGameState)
+    {
+        //  PlayerManager player = NetworkClient.connection.identity.GetComponent<PlayerManager>();
+        //  player.IsMyTurn = player.MyGameState == gameState;
+        //endTurnButton.interactable = player.IsMyTurn;
+        //endTurnButton.GetComponentInChildren<TextMeshProUGUI>().text = player.IsMyTurn ? "End Turn" : "Enemy Turn";
     }
 }

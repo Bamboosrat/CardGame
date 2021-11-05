@@ -154,6 +154,8 @@ namespace Lobby
             // From menu to game
             if (SceneManager.GetActiveScene().name == "menuScene"  && newSceneName.StartsWith("inGameUnoScene"))
             {
+
+
                 for (int i = RoomPlayers.Count - 1; i >= 0; i--)
                 {
                     var conn = RoomPlayers[i].connectionToClient;
@@ -161,6 +163,14 @@ namespace Lobby
                     gameplayerInstance.SetDisplayName(RoomPlayers[i].DisplayName);
                     gameplayerInstance.SetPlayerID(i + 1);
 
+
+                    // Sets the host always as First player
+                    // maybe change to random player start
+                    if (i == 0 && !gameplayerInstance.TurnStatus())
+                    {
+                        gameplayerInstance.Turn();
+                        Debug.Log("Start Player Set");
+                    }
 
                     NetworkServer.Destroy(conn.identity.gameObject);
 

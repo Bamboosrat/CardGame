@@ -75,6 +75,8 @@ public class CardDeck
 
     public void ResetDeck(CardDeck otherDeck)
     {
+            // Add if wild card is played and the color changed, return the color changed wild card to black
+
         for (int i = 0; i < otherDeck.CountCards() - 1; i++)
         {
             AddCard(otherDeck.GetTopCard());

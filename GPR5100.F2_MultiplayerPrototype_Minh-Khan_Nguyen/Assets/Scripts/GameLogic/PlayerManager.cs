@@ -25,11 +25,15 @@ THINGS TO DO:
 public class PlayerManager : NetworkBehaviour, IPlayerInterface
 {
     #region Field / Property
-    public bool IsMyTurn = false;
+
+    //[SyncVar]
+    private bool IsMyTurn = false;
+
+
     private bool isCardPlayable = false;
     private bool skip = false;
-    // bool drew = false;
-    // bool playedWild;
+    // private bool drew = false;
+    // private bool playedWild;
 
     public GameState MyGameState;
 
@@ -95,6 +99,8 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
         CmdRequestStartHand();
     }
 
+
+
     [Command]
     private void CmdRequestStartHand()
     {
@@ -106,7 +112,7 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
     public void PlayCard(CardDisplay _card)
     {
         CmdPlayCard(_card.Card);
-       // cardsPlayed++;
+        // cardsPlayed++;
         //Debug.Log(cardsPlayed);
     }
 
@@ -114,18 +120,29 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
     void CmdPlayCard(Card _card)
     {
         isCardPlayable = false;
-        //Debug.Log("Card Played");
-        if (Room.GameManager.CanPlayCard(_card))
+
+        if (IsMyTurn)
         {
-            isCardPlayable = true;
-            Room.GameManager.PlayCard(_card);
-            Debug.Log("Player " + playerID  + " " + _card.ToString());
-            RemoveCard(_card);
-            Room.CardDisplaySpawner.SpawnCard(_card, CardDisplay.CardPosition.Played, 0);
+            //Debug.Log("Card Played");
+            if (Room.GameManager.CanPlayCard(_card))
+            {
+                isCardPlayable = true;
+                Room.GameManager.PlayCard(_card);
+                //Debug.Log("Player " + playerID  + " " + _card.ToString());
+                RemoveCard(_card);
+                Room.CardDisplaySpawner.SpawnCard(_card, CardDisplay.CardPosition.Played, 0);
+                Room.GameManager.SpecialCardPlay(this, _card);
+
+               // Debug.Log(IsMyTurn);
+            }
+            else
+            {
+                TargetRPCCantPlayCard();
+            }
         }
         else
         {
-            TargetRPCCantPlayCard();
+            Debug.Log("It is not my turn");
         }
     }
 
@@ -135,6 +152,8 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
         Debug.Log("Not Allowed to play Card");
         isCardPlayable = false;
     }
+
+
 
     #endregion
 
@@ -147,13 +166,25 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
     [Command]
     public void CmdRequestToDrawCards()
     {
-        Room.GameManager.DealCards(1, this);
+        if (IsMyTurn)
+        {
+            Room.GameManager.DealCards(1, this);
+            // EndTurn();
+        }    
     }
 
     public void Turn()
     {
-   
+        IsMyTurn = true;
     }
+
+    public void EndTurn()
+    { //ends the player's turn
+        IsMyTurn = false;
+
+    }
+
+
 
     #region Add or Remove Method
     [Server]
@@ -178,6 +209,8 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
     }
     #endregion
 
+
+
     #region Get Information
     public bool IsCardPlayable()
     {
@@ -189,6 +222,8 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
         get { return skip; }
         set { skip = value; }
     }
+
+    public bool TurnStatus() => IsMyTurn;
 
     public bool Equals(PlayerManager other)
     { //equals function based on name
