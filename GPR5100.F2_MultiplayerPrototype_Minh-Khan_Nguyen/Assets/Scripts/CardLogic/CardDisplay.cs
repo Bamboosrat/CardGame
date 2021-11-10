@@ -63,7 +63,7 @@ public class CardDisplay : NetworkBehaviour
     {
         base.OnStartClient();
 
-		// implement 
+		// implement safer display of cards
 		/*if(hasAuthority || cardPosition != CardPosition.Dealt)
         {
 			if(isClientOnly)

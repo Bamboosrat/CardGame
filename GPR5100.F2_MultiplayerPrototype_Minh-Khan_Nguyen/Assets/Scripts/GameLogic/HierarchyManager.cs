@@ -6,8 +6,8 @@ public class HierarchyManager : MonoBehaviour
 {
 
     [SerializeField] private Transform dropZone;
-    [SerializeField] private Transform playerZone;
 
+    [SerializeField] private Transform playerZone;
     [SerializeField] private Transform nextPlayer1Zone;
     [SerializeField] private Transform nextPlayer2Zone;
     [SerializeField] private Transform nextPlayer3Zone;

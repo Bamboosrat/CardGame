@@ -1,34 +1,27 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-using Mirror;
 
-public class UIManager : NetworkBehaviour
+public class UiManager : MonoBehaviour
 {
-    public PlayerManager PlayerManager;
-    public GameManager GameManager;
-    public GameObject Button;
-    public GameObject PlayerText;
-    public GameObject OpponentText;
+    [SerializeField] private GameObject player1NameTag;
+    [SerializeField] private GameObject player2NameTag;
+    [SerializeField] private GameObject player3NameTag;
+    [SerializeField] private GameObject player4NameTag;
 
-    Color blueColor = new Color32(17, 216, 238, 255);
+    private static UiManager instance;
+    public static UiManager Instance => instance;
 
-    void Start()
+    private void Awake()
     {
-        GameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+        if (instance != null && instance != this)
+        {
+            Destroy(this.gameObject);
+        }
+        else
+        {
+            instance = this;
+        }
     }
 
-
-    public void UpdateButtonText(string gameState)
-    {
-        Button = GameObject.Find("Button");
-        Button.GetComponentInChildren<Text>().text = gameState;
-    }
-
-    public void HighlightTurn(int turnOrder)
-    {
-        PlayerManager = NetworkClient.connection.identity.GetComponent<PlayerManager>();
-        
-    }
 }

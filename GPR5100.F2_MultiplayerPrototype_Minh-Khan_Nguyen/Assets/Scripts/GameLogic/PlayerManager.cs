@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
-using System.Linq;
+using TMPro;
 using Lobby;
+using UnityEngine.UI;
 
 /*
 THINGS TO DO:
@@ -26,16 +27,19 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
 {
     #region Field / Property
 
-    //[SyncVar]
+    [SerializeField]
+    public GameObject gameOverScreen;
+    [SerializeField]
+    public GameObject chooseColor;
+    [SerializeField]
+    public GameObject UiPanel;
+
     private bool IsMyTurn = false;
 
-
     private bool isCardPlayable = false;
-    private bool skip = false;
+    private bool isSkipped = false;
     // private bool drew = false;
     // private bool playedWild;
-
-    public GameState MyGameState;
 
     private List<CardDisplay> handList = new List<CardDisplay>();
 
@@ -62,20 +66,44 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
 
     #region LobbyStuff
 
-    [SyncVar]
+    [SyncVar(hook = nameof(HandleDisplayNameChanged))]
     private string displayName = "Loading...";
+
+
+
+    public void HandleDisplayNameChanged(string oldValue, string newValue) => UpdateDisplay();
+
+
+    private void UpdateDisplay()
+    {
+        if (!hasAuthority)
+        {
+            foreach (var player in Room.GamePlayers)
+            {
+                if (player.hasAuthority)
+                {
+                    player.UpdateDisplay();
+                    break;
+                }
+            }
+
+            return;
+        }
+
+    }
 
     public override void OnStartClient()
     {
         DontDestroyOnLoad(gameObject);
         Room.GamePlayers.Add(this);
 
-
+        UpdateDisplay();
     }
 
     public override void OnStopClient()
     {
         Room.GamePlayers.Remove(this);
+        UpdateDisplay();
     }
 
     [Server]
@@ -95,7 +123,10 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
     public override void OnStartLocalPlayer()
     {
         base.OnStartLocalPlayer();
+
         localPlayerManager = this;
+        Turn();
+
         CmdRequestStartHand();
     }
 
@@ -124,7 +155,7 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
         if (IsMyTurn)
         {
             //Debug.Log("Card Played");
-            if (Room.GameManager.CanPlayCard(_card))
+            if (true/*Room.GameManager.CanPlayCard(_card)*/)
             {
                 isCardPlayable = true;
                 Room.GameManager.PlayCard(_card);
@@ -160,7 +191,8 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
     [Server]
     private CardDisplay FindCard(Card card)
     {
-        return handList.Find(cardInHandList => cardInHandList.Card.Number == card.Number && cardInHandList.Card.Color == card.Color);
+
+         return handList.Find(cardInHandList => cardInHandList.Card.Number == card.Number && cardInHandList.Card.Color == card.Color);
     }
 
     [Command]
@@ -173,15 +205,19 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
         }    
     }
 
+    [Server]
     public void Turn()
     {
         IsMyTurn = true;
+      //  Debug.Log("Start turn");
     }
 
+    [Server]
     public void EndTurn()
-    { //ends the player's turn
+    { 
         IsMyTurn = false;
-
+        Room.GameManager.UpdateClientTurn();
+       //Debug.Log("End turn");
     }
 
 
@@ -212,30 +248,23 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
 
 
     #region Get Information
-    public bool IsCardPlayable()
-    {
-        return isCardPlayable;
-    }
+    public bool IsCardPlayable() => isCardPlayable;
 
     public bool SkipStatus
     { //returns if the player should be skipped
-        get { return skip; }
-        set { skip = value; }
+        get { return isSkipped; }
+        set { isSkipped = value; }
     }
 
     public bool TurnStatus() => IsMyTurn;
 
-    public bool Equals(PlayerManager other)
-    { //equals function based on name
-    	return other.GetName().Equals(displayName);
-    }
-    public string GetName()
-    { //returns the name
-    	return displayName;
-    }
-    public int GetCardsLeft()
-    { //gets how many cards are left in the hand
-    	return handList.Count;
-    }
+    public bool Equals(PlayerManager other)=> other.GetName().Equals(displayName);
+
+    public string GetName() => displayName;
+
+    public int GetCardsLeft() => handList.Count;
+
+    public CardDisplay GetLastCard() => handList[handList.Count - 1];
+
     #endregion
 }

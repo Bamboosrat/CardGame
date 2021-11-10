@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Mirror;
 using System.Linq;
 using Lobby;
+using TMPro;
 
 public class GameManager : NetworkBehaviour
 {
@@ -12,17 +14,15 @@ public class GameManager : NetworkBehaviour
     private CardDeck cardDeck;
     private CardDeck discardDeck;
 
+
+
     public Card TopCard => discardDeck.PeekTopCard();
 
     [SyncVar]
-    private int where = 0;
+    private int where;
 
-    private float timer = 0;
+    //private float timer = 0;
     private bool reverse = false;
-
-    [SyncVar(hook = nameof(UpdateClientTurn))]
-    public GameState gameState;
-
 
     private NetworkManagerLobby room;
     private NetworkManagerLobby Room
@@ -39,8 +39,9 @@ public class GameManager : NetworkBehaviour
     [Server]
     void Awake()
     {
-
         Debug.Log("Start GameManager");
+
+
 
         cardDeck = new CardDeck();
         discardDeck = new CardDeck();
@@ -49,99 +50,21 @@ public class GameManager : NetworkBehaviour
 
         DealFirstCard();
 
-        Debug.Log(Room.GamePlayers.Count);
+        where = Room.GamePlayers.Count - 1;
     }
 
-    private void Update()
+    [Server]
+    public void SetUpGame(PlayerManager playerM)
     {
 
-        if (Room.GamePlayers[where].TurnStatus())
-        {
-              if (Room.GamePlayers[where].SkipStatus)
-              {
-                  Room.GamePlayers[where].SkipStatus = false;
-                  where += reverse ? -1 : 1;
-                  if (where >= Room.GamePlayers.Count)
-                      where = 0;
-                  else if (where < 0)
-                      where = Room.GamePlayers.Count - 1;
-                  return;
-              }
-            
-              where += reverse ? -1 : 1;
-              Room.GamePlayers[where + (reverse ? 1 : -1)].Turn();
-                Debug.Log("AYAYA " + where);
-
-        }
-
-        if (where >= Room.GamePlayers.Count)
-        {
-            where = 0;
-            Debug.Log(where);
-        }
-        else if (where < 0)
-        {
-            where = Room.GamePlayers.Count - 1;
-            Debug.Log(where);
-        }
-
-        
-        #region Turn Management Test
-        /*
-      // bool win = UpdateCardsLeft();
-      // if (win)
-      // return;
-
-           if (Room.GamePlayers[where].TurnStatus())
-           {
-               if (Room.GamePlayers[where].SkipStatus)
-               {
-                   Room.GamePlayers[where].SkipStatus = false;
-                   where += reverse ? -1 : 1;
-                   if (where >= Room.GamePlayers.Count)
-                       where = 0;
-                   else if (where < 0)
-                       where = Room.GamePlayers.Count - 1;
-                   return;
-               }
-            
-               where += reverse ? -1 : 1;
-               Room.GamePlayers[where + (reverse ? 1 : -1)].Turn();
-           }
-           else if (Room.GamePlayers[where] != null)
-           {
-               if (Room.GamePlayers[where].SkipStatus)
-               {
-                   Room.GamePlayers[where].SkipStatus = false;
-                   where += reverse ? -1 : 1;
-                   if (where >= Room.GamePlayers.Count)
-                       where = 0;
-                   else if (where < 0)
-                       where = Room.GamePlayers.Count - 1;
-                   return;
-               }
-               timer += Time.deltaTime;
-               if (timer < 2.2)
-                   return;
-               timer = 0;
-               where += reverse ? -1 : 1;
-               Room.GamePlayers[where + (reverse ? 1 : -1)].Turn();
-           }
-           else
-               where += reverse ? -1 : 1;
-       
-           if (where >= Room.GamePlayers.Count)
-               where = 0;
-           else if (where < 0)
-               where = Room.GamePlayers.Count - 1;
-        */
-        #endregion
     }
+
+
 
     #region Card Methods
 
     [Server]
-   void DealFirstCard()
+   private void DealFirstCard()
    {
        Debug.Log("Starting Game. Dealing first Card");
        // Spawns first card
@@ -188,15 +111,15 @@ public class GameManager : NetworkBehaviour
        // Debug.Log("Deals start hand : "+ playerM);
        // Debug.Log("Deals start hand : " + cardDeck);
 
-        for (int j = 0; j < 7; j++)
+        for (int j = 0; j < 1; j++)
             {
             playerM.AddCard(cardDeck.GetTopCard());
 
             }
-       // Debug.Log(playerM.getCardsLeft());
+
     }
 
-    [Server]
+
     public void DealCards(int amountOfCards, PlayerManager playerM)
     {
         if (cardDeck.IsDeckEmpty())
@@ -212,42 +135,41 @@ public class GameManager : NetworkBehaviour
                 //Debug.Log(playerM);
             }
 
+
+           // if (!TopCard.IsPlayable(playerM.GetLastCard().Card))
+           // implement is drawn card playable? play it or end turn
             playerM.EndTurn();
-            where += reverse ? -1 : 1;
+
+
         }
-
-        
-
     }
 
     #endregion
 
+    [Server]
     public void SpecialCardPlay(PlayerManager player, Card _card)
     { //takes care of all special cards played
 
-        // Debug.Log("Special card played");
-        
         int who = Room.GamePlayers.FindIndex(e => e.Equals(player)) + (reverse ? -1 : 1);
         if (who >= Room.GamePlayers.Count)
             who = 0;
         else if (who < 0)
             who = Room.GamePlayers.Count - 1;
 
-        //Debug.Log(who);
-
         switch (_card.number)
         {
             // Skip
             case 10:
                 Room.GamePlayers[who].SkipStatus = true;
-                Debug.Log(who + " played (skip) " + _card.ToString());
+                Debug.Log(Room.GamePlayers[where].GetName() + " played (skip) " + _card.ToString());
+                Debug.Log(Room.GamePlayers[who].GetName() + " is skipped. Skip status: "  + Room.GamePlayers[who].SkipStatus);
                 break;
 
                 // reverse
             case 11:
                 reverse = !reverse;
                 int difference = 0;
-                Debug.Log(who + " played (reverse) " + _card.ToString());
+                Debug.Log(Room.GamePlayers[where].GetName() + " played (reverse) " + _card.ToString());
                 if (reverse)
                 {
                     difference = who - 2;
@@ -272,13 +194,13 @@ public class GameManager : NetworkBehaviour
                 // draw 2
             case 12:
                 DealCards(2, Room.GamePlayers[who]);
-                Debug.Log(who + " played (draw2) " + _card.ToString());
+                Debug.Log(Room.GamePlayers[where].GetName() + " played (draw2) " + _card.ToString());
                 break;
 
                 // draw 4
             case 14:
                 DealCards(4, Room.GamePlayers[who]);
-                Debug.Log(who + " played (wild4) " + _card.ToString());
+                Debug.Log(Room.GamePlayers[where].GetName() + " played (wild4) " + _card.ToString());
                 break;
         }
         // if (_card.number != 14)
@@ -286,30 +208,62 @@ public class GameManager : NetworkBehaviour
         //ColorChoicePanel.enabled = true;
 
         player.EndTurn();
-        where += reverse ? -1 : 1;
     }
 
-    public bool UpdateCardsLeft()
-    { 
+    private bool UpdateCardsLeft()
+    {
+        if (Room.GamePlayers[where].GetCardsLeft() == 0) {
 
-        foreach (PlayerManager playerM in Room.GamePlayers)
-        {
-            if (playerM.GetCardsLeft() == 0)
-            {
-                Debug.Log(playerM.GetName() + " won!");
-               // endCan.SetActive(true);
-               // endCan.transform.Find("WinnerTxt").gameObject.GetComponent<Text>().text = string.Format("{0} Won!", playerM.GetName());
-                return true;
-            }
+
+
+
+               Room.GamePlayers[where].gameOverScreen.SetActive(true);
+               Room.GamePlayers[where].gameOverScreen.transform.Find("Text_Winner").gameObject.GetComponent<Text>().text = string.Format("{0} Won!", Room.GamePlayers[where].GetName());
+            
+            return true;
+
         }
+        
         return false;
     }
 
-    private void UpdateClientTurn(GameState _oldGameState, GameState newGameState)
+    [Server]
+    public void UpdateClientTurn()
     {
-        //  PlayerManager player = NetworkClient.connection.identity.GetComponent<PlayerManager>();
-        //  player.IsMyTurn = player.MyGameState == gameState;
-        //endTurnButton.interactable = player.IsMyTurn;
-        //endTurnButton.GetComponentInChildren<TextMeshProUGUI>().text = player.IsMyTurn ? "End Turn" : "Enemy Turn";
+        if (UpdateCardsLeft())
+            return;
+
+        Debug.Log(Room.GamePlayers[where].GetName() + " ended his turn. Player " + where);
+
+
+        if (Room.GamePlayers[where].SkipStatus)
+        {
+            // Debug.Log(Room.GamePlayers[where].GetName() + " is skipped");
+            Room.GamePlayers[where].SkipStatus = false;
+            where += reverse ? -1 : 1;
+            if (where >= Room.GamePlayers.Count)
+                where = 0;
+            else if (where < 0)
+                where = Room.GamePlayers.Count - 1;
+
+            Room.GamePlayers[where].Turn();
+
+            Debug.Log(Room.GamePlayers[where].GetName() + " his Turn started. Player " + where);
+            return;
+        }
+
+        where += reverse ? -1 : 1;
+
+
+        if (where >= Room.GamePlayers.Count)
+            where = 0;
+        else if (where < 0)
+            where = Room.GamePlayers.Count - 1;
+
+
+
+        Room.GamePlayers[where].Turn();
+
+        Debug.Log(Room.GamePlayers[where].GetName() + " his Turn started. Player " + where);
     }
 }
