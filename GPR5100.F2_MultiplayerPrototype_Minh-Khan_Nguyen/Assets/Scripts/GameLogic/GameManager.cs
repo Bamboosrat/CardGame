@@ -9,7 +9,6 @@ using TMPro;
 
 public class GameManager : NetworkBehaviour
 {
-
     #region Field / Property
     private CardDeck cardDeck;
     private CardDeck discardDeck;
@@ -36,6 +35,7 @@ public class GameManager : NetworkBehaviour
 
     #endregion
 
+    #region Unity
     [Server]
     void Awake()
     {
@@ -53,13 +53,7 @@ public class GameManager : NetworkBehaviour
         where = Room.GamePlayers.Count - 1;
     }
 
-    [Server]
-    public void SetUpGame(PlayerManager playerM)
-    {
-
-    }
-
-
+    #endregion
 
     #region Card Methods
 
@@ -111,7 +105,7 @@ public class GameManager : NetworkBehaviour
        // Debug.Log("Deals start hand : "+ playerM);
        // Debug.Log("Deals start hand : " + cardDeck);
 
-        for (int j = 0; j < 1; j++)
+        for (int j = 0; j < 7; j++)
             {
             playerM.AddCard(cardDeck.GetTopCard());
 
@@ -144,8 +138,6 @@ public class GameManager : NetworkBehaviour
         }
     }
 
-    #endregion
-
     [Server]
     public void SpecialCardPlay(PlayerManager player, Card _card)
     { //takes care of all special cards played
@@ -162,10 +154,10 @@ public class GameManager : NetworkBehaviour
             case 10:
                 Room.GamePlayers[who].SkipStatus = true;
                 Debug.Log(Room.GamePlayers[where].GetName() + " played (skip) " + _card.ToString());
-                Debug.Log(Room.GamePlayers[who].GetName() + " is skipped. Skip status: "  + Room.GamePlayers[who].SkipStatus);
+                Debug.Log(Room.GamePlayers[who].GetName() + " is skipped. Skip status: " + Room.GamePlayers[who].SkipStatus);
                 break;
 
-                // reverse
+            // reverse
             case 11:
                 reverse = !reverse;
                 int difference = 0;
@@ -191,13 +183,13 @@ public class GameManager : NetworkBehaviour
                 }
                 break;
 
-                // draw 2
+            // draw 2
             case 12:
                 DealCards(2, Room.GamePlayers[who]);
                 Debug.Log(Room.GamePlayers[where].GetName() + " played (draw2) " + _card.ToString());
                 break;
 
-                // draw 4
+            // draw 4
             case 14:
                 DealCards(4, Room.GamePlayers[who]);
                 Debug.Log(Room.GamePlayers[where].GetName() + " played (wild4) " + _card.ToString());
@@ -210,12 +202,13 @@ public class GameManager : NetworkBehaviour
         player.EndTurn();
     }
 
+    #endregion
+
+    #region Update Client Turn
+
     private bool UpdateCardsLeft()
     {
         if (Room.GamePlayers[where].GetCardsLeft() == 0) {
-
-
-
 
                Room.GamePlayers[where].gameOverScreen.SetActive(true);
                Room.GamePlayers[where].gameOverScreen.transform.Find("Text_Winner").gameObject.GetComponent<Text>().text = string.Format("{0} Won!", Room.GamePlayers[where].GetName());
@@ -236,6 +229,17 @@ public class GameManager : NetworkBehaviour
         Debug.Log(Room.GamePlayers[where].GetName() + " ended his turn. Player " + where);
 
 
+
+        where += reverse ? -1 : 1;
+
+
+        if (where >= Room.GamePlayers.Count)
+            where = 0;
+        else if (where < 0)
+            where = Room.GamePlayers.Count - 1;
+
+
+
         if (Room.GamePlayers[where].SkipStatus)
         {
             // Debug.Log(Room.GamePlayers[where].GetName() + " is skipped");
@@ -252,18 +256,10 @@ public class GameManager : NetworkBehaviour
             return;
         }
 
-        where += reverse ? -1 : 1;
-
-
-        if (where >= Room.GamePlayers.Count)
-            where = 0;
-        else if (where < 0)
-            where = Room.GamePlayers.Count - 1;
-
-
 
         Room.GamePlayers[where].Turn();
 
         Debug.Log(Room.GamePlayers[where].GetName() + " his Turn started. Player " + where);
     }
+    #endregion
 }

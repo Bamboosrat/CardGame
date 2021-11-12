@@ -69,8 +69,6 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
     [SyncVar(hook = nameof(HandleDisplayNameChanged))]
     private string displayName = "Loading...";
 
-
-
     public void HandleDisplayNameChanged(string oldValue, string newValue) => UpdateDisplay();
 
 
@@ -155,7 +153,7 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
         if (IsMyTurn)
         {
             //Debug.Log("Card Played");
-            if (true/*Room.GameManager.CanPlayCard(_card)*/)
+            if (Room.GameManager.CanPlayCard(_card))
             {
                 isCardPlayable = true;
                 Room.GameManager.PlayCard(_card);
@@ -244,8 +242,6 @@ public class PlayerManager : NetworkBehaviour, IPlayerInterface
         }
     }
     #endregion
-
-
 
     #region Get Information
     public bool IsCardPlayable() => isCardPlayable;

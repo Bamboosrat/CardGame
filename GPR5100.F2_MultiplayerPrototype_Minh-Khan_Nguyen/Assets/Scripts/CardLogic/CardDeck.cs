@@ -23,10 +23,12 @@ public class CardDeck
             }
         }
 
-        for (int i = 0; i < amountOfBlackCards; i++)
-        {
-            deck.Push(new Card(13+(i%2), Card.CardColor.black));
-        }
+        // Black cards don't work
+
+       // for (int i = 0; i < amountOfBlackCards; i++)
+       // {
+       //     deck.Push(new Card(13+(i%2), Card.CardColor.black));
+       // }
 
         Shuffle();
 
