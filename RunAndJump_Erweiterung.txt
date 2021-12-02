@@ -1,0 +1,38 @@
+Meine Erweiterung:
+
+LevelInspector.cs
+
+Beim ModeHandler() im switch
+
+case Mode.Clear:
+case Mode.FillRect:
+
+Beim EventHandler() im switch
+
+case Mode.Clear:
+case Mode.FillRect:
+
+und 2 neue Methoden implementiert:
+
+1. private void Clear()
+2. private void FillRect(Vector3 startPos, int col, int row) 
+
+
+
+Erklärung:
+
+Beim Clear() kommt eine Warnbox, die dich fragt, ob du wirklich dein schönes Kunstwerk löschen willst.
+Es löscht alle Items im Grid.
+
+Beim FillRect() kannst du mit der Maus ein rechteckiges Feld mit der ausgewählten Palette Item befüllen.
+Funktioniert in jeder Richtung. 
+
+
+
+Was noch nicht funktioniert:
+
+- Der Spieler kann nicht mit dem Schild interagieren
+- Der Spieler hat keine Todesanimation
+- Der Blob, Truhe und Schild spawnen off center/ unpassend
+
+- Minh Nguyen
